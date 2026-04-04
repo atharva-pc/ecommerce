@@ -1,5 +1,7 @@
 {
   "version": 2,
+  "buildCommand": "npm run vercel-build",
+  "outputDirectory": "frontart/dist",
   "rewrites": [
     {
       "source": "/api/:path*",
@@ -7,11 +9,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/frontart/dist/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/frontart/dist/index.html"
+      "destination": "/index.html"
     }
   ]
 }
