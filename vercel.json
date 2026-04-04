@@ -7,8 +7,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/frontart/dist/$1",
-      "continue": true
+      "destination": "/frontart/dist/$1"
     },
     {
       "source": "/(.*)",
