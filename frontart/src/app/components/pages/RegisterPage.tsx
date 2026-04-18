@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion } from 'motion/react';
 import { Mail, Lock, User, Phone, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
@@ -116,176 +117,225 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center px-4 py-12">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-semibold mb-2 text-[#111827]" style={{ fontFamily: 'Poppins, sans-serif' }}>Create Account</h1>
-          <p className="text-gray-600">Join our creative community</p>
+    <div className="min-h-screen grid lg:grid-cols-2 bg-white overflow-hidden">
+      {/* Left Side: Visual/Branding (Hidden on mobile) */}
+      <div className="hidden lg:flex relative items-center justify-center bg-black group overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <motion.img
+            initial={{ scale: 1.1, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 1.5 }}
+            src="https://res.cloudinary.com/dylofrbje/image/upload/v1776248053/18swapnil_sakhare_15000_wzzbfm.jpg"
+            alt="Art Background"
+            className="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-10000"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+        </div>
+        
+        <div className="relative z-10 text-center px-12">
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+          >
+            <h1 className="text-6xl font-extrabold tracking-tight mb-6">
+              <span style={{ 
+                background: "linear-gradient(to right, #fdbc5aff, #fc5522ff, #f345c7ff)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                filter: "drop-shadow(2px 2px 14px rgba(0,0,0,0.35))",
+              }}>
+                <span style={{ fontFamily: "'Playfair Display', serif" }}>art</span>
+                <span style={{ fontFamily: "'Poppins', sans-serif", fontWeight: '600' }}>VPP</span>
+              </span>
+            </h1>
+            <p className="text-xl text-gray-300 font-light max-w-md mx-auto leading-relaxed">
+              Join a blooming community of creators and collectors. Start your journey today.
+            </p>
+          </motion.div>
         </div>
 
-        {/* Tab Selector */}
-        <div className="flex bg-white rounded-xl p-1 shadow-sm mb-6 border border-gray-100">
-          <Link to="/login" className="flex-1 text-center py-2.5 rounded-lg text-gray-500 hover:text-gray-900 font-medium transition-all">
-            Sign In
-          </Link>
-          <Link to="/register" className="flex-1 text-center py-2.5 rounded-lg bg-gradient-to-r from-[#a73f2b] to-[#b30452] text-white font-medium shadow-[0_2px_8px_rgba(179, 4, 82,0.25)] transition-all">
-            Sign Up
-          </Link>
+        <div className="absolute bottom-10 left-10 right-10 flex justify-between items-end">
+          <div className="text-white/40 text-xs font-medium tracking-[0.2em] uppercase">
+            Creative Community
+          </div>
+          <div className="flex gap-2">
+            {[1, 2, 3].map(i => (
+              <div key={i} className={`w-1.5 h-1.5 rounded-full ${i === 2 ? 'bg-white' : 'bg-white/20'}`} />
+            ))}
+          </div>
         </div>
+      </div>
 
-        <Card className="shadow-[0_4px_20px_rgba(0,0,0,0.03)] border-transparent bg-white p-2">
-          <CardContent className="pt-6">
-            <form onSubmit={handleRegister} className="space-y-4">
-              <div>
-                <Label htmlFor="username">Username *</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <Input
-                    id="username"
-                    value={formData.username}
-                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                    required
-                    className="pl-10"
-                    placeholder="john_doe"
-                    minLength={3}
-                    maxLength={30}
-                    autoComplete="username"
-                  />
+      {/* Right Side: Register Form */}
+      <div className="flex items-center justify-center p-6 sm:p-12 lg:p-20 bg-gray-50/50 relative overflow-y-auto">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#b30452]/5 rounded-full blur-3xl -mr-32 -mt-32" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#a73f2b]/5 rounded-full blur-3xl -ml-32 -mb-32" />
+
+        <motion.div 
+          initial={{ x: 20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="w-full max-w-[500px] z-10 py-10"
+        >
+          {/* Logo for Mobile */}
+          <div className="lg:hidden text-center mb-10">
+            <h1 className="text-4xl font-extrabold tracking-tight">
+              <span style={{ 
+                background: "linear-gradient(to right, #fdbc5aff, #fc5522ff, #f345c7ff)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}>
+                <span style={{ fontFamily: "'Playfair Display', serif" }}>art</span>
+                <span style={{ fontFamily: "'Poppins', sans-serif", fontWeight: '600' }}>VPP</span>
+              </span>
+            </h1>
+          </div>
+
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h2>
+            <p className="text-gray-500">Sign up and join our community of art lovers</p>
+          </div>
+
+          {/* Tab Selector */}
+          <div className="flex bg-white/80 backdrop-blur-sm rounded-2xl p-1.5 shadow-sm mb-8 border border-gray-100">
+            <Link to="/login" className="flex-1 text-center py-3 rounded-xl text-gray-500 hover:text-gray-900 font-medium transition-all">
+              Sign In
+            </Link>
+            <Link to="/register" className="flex-1 text-center py-3 rounded-xl bg-gray-900 text-white font-medium shadow-lg transition-all">
+              Sign Up
+            </Link>
+          </div>
+
+          <Card className="border-0 shadow-2xl shadow-gray-200/50 bg-white/70 backdrop-blur-xl rounded-3xl overflow-hidden">
+            <CardContent className="p-8 sm:p-10">
+              <form onSubmit={handleRegister} className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div>
+                    <Label className="text-gray-700 font-semibold mb-2 block ml-1" htmlFor="username">Username</Label>
+                    <div className="relative group">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-[#b30452] transition-colors" />
+                      <Input
+                        id="username"
+                        value={formData.username}
+                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                        required
+                        className="pl-12 h-14 rounded-2xl border-gray-200 focus:border-[#b30452] focus:ring-[#b30452]/10 transition-all bg-white/50"
+                        placeholder="john_doe"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-gray-700 font-semibold mb-2 block ml-1" htmlFor="displayName">Full Name</Label>
+                    <div className="relative group">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-[#b30452] transition-colors" />
+                      <Input
+                        id="displayName"
+                        value={formData.displayName}
+                        onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
+                        required
+                        className="pl-12 h-14 rounded-2xl border-gray-200 focus:border-[#b30452] focus:ring-[#b30452]/10 transition-all bg-white/50"
+                        placeholder="John Doe"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">3-30 characters, letters, numbers and underscores only</p>
-              </div>
 
-              <div>
-                <Label htmlFor="email">Email *</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    required
-                    className="pl-10"
-                    placeholder="your@email.com"
-                    autoComplete="email"
-                  />
+                <div>
+                  <Label className="text-gray-700 font-semibold mb-2 block ml-1" htmlFor="email">Email Address</Label>
+                  <div className="relative group">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-[#b30452] transition-colors" />
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      required
+                      className="pl-12 h-14 rounded-2xl border-gray-200 focus:border-[#b30452] focus:ring-[#b30452]/10 transition-all bg-white/50"
+                      placeholder="name@example.com"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <Label htmlFor="displayName">Display Name *</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <Input
-                    id="displayName"
-                    value={formData.displayName}
-                    onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-                    required
-                    className="pl-10"
-                    placeholder="John Doe"
-                    minLength={2}
-                    maxLength={60}
-                    autoComplete="name"
-                  />
+                <div>
+                  <Label className="text-gray-700 font-semibold mb-2 block ml-1" htmlFor="phone">Phone Number</Label>
+                  <div className="relative group">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-[#b30452] transition-colors" />
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      required
+                      className="pl-12 h-14 rounded-2xl border-gray-200 focus:border-[#b30452] focus:ring-[#b30452]/10 transition-all bg-white/50"
+                      placeholder="9876543210"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <Label htmlFor="phone">Phone Number *</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    required
-                    className="pl-10"
-                    placeholder="9876543210"
-                    autoComplete="tel"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div>
+                    <Label className="text-gray-700 font-semibold mb-2 block ml-1" htmlFor="password">Password</Label>
+                    <div className="relative group">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-[#b30452] transition-colors" />
+                      <Input
+                        id="password"
+                        type="password"
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        required
+                        className="pl-12 h-14 rounded-2xl border-gray-200 focus:border-[#b30452] focus:ring-[#b30452]/10 transition-all bg-white/50"
+                        placeholder="••••••••"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-gray-700 font-semibold mb-2 block ml-1" htmlFor="confirmPassword">Confirm</Label>
+                    <div className="relative group">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-[#b30452] transition-colors" />
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        value={formData.confirmPassword}
+                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                        required
+                        className="pl-12 h-14 rounded-2xl border-gray-200 focus:border-[#b30452] focus:ring-[#b30452]/10 transition-all bg-white/50"
+                        placeholder="••••••••"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">10 digit phone number (required)</p>
-              </div>
 
-              <div>
-                <Label htmlFor="password">Password *</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <Input
-                    id="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    required
-                    className="pl-10"
-                    placeholder="Create a strong password"
-                    minLength={8}
-                    autoComplete="new-password"
+                <div className="flex items-start space-x-3 p-1">
+                  <Checkbox
+                    id="terms"
+                    checked={agreedToTerms}
+                    onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
+                    className="mt-1 border-gray-300 data-[state=checked]:bg-[#b30452] data-[state=checked]:border-[#b30452]"
                   />
+                  <Label htmlFor="terms" className="text-sm cursor-pointer leading-relaxed text-gray-600">
+                    I agree to the <Link to="/terms" className="text-[#b30452] font-bold">Terms</Link> & <Link to="/privacy" className="text-[#b30452] font-bold">Privacy Policy</Link>
+                  </Label>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Min 8 characters with uppercase, lowercase and number</p>
-              </div>
 
-              <div>
-                <Label htmlFor="confirm-password">Confirm Password *</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <Input
-                    id="confirm-password"
-                    type="password"
-                    value={formData.confirmPassword}
-                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    required
-                    className="pl-10"
-                    placeholder="Re-enter your password"
-                    autoComplete="new-password"
-                  />
-                </div>
-              </div>
+                <Button
+                  type="submit"
+                  className="w-full text-white rounded-2xl shadow-xl hover:shadow-[#b30452]/20 transition-all duration-300 py-7 text-lg mt-4 border-0 font-bold bg-gradient-to-r from-[#a73f2b] to-[#b30452] hover:scale-[1.02] active:scale-[0.98]"
+                  disabled={isLoading}
+                >
+                  {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Create Account'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
 
-              <div className="flex items-start space-x-2">
-                <Checkbox
-                  id="terms"
-                  checked={agreedToTerms}
-                  onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
-                  className="mt-1"
-                />
-                <Label htmlFor="terms" className="text-sm cursor-pointer leading-relaxed">
-                  I agree to the{' '}
-                  <Link to="/terms" className="text-[#a73f2b] hover:underline">Terms of Service</Link>
-                  {' '}and{' '}
-                  <Link to="/privacy" className="text-[#a73f2b] hover:underline">Privacy Policy</Link>
-                </Label>
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full text-white rounded-[10px] shadow-md hover:shadow-lg transition-all duration-250 py-6 text-base mt-4 border-0 font-semibold tracking-wide bg-gradient-to-r from-[#a73f2b] to-[#b30452] hover:brightness-110 hover:shadow-[0px_6px_20px_rgba(179,4,82,0.35)]"
-                size="lg"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Creating Account...
-                  </>
-                ) : (
-                  'Create Account'
-                )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Info about becoming an artist */}
-        <div className="mt-4 p-4 bg-blue-50 rounded-lg text-center">
-          <p className="text-sm text-blue-800">
-            <strong>Want to sell your art?</strong><br />
-            Create an account first, verify your email, then{' '}
-            <Link to="/sell" className="text-[#a73f2b] hover:underline font-medium">apply to become an artist</Link>
-          </p>
-        </div>
+          <div className="mt-8 p-6 bg-white/50 backdrop-blur-sm rounded-3xl border border-dashed border-[#b30452]/20 text-center">
+            <p className="text-sm text-gray-600">
+              <strong>Want to sell your art?</strong><br />
+              Complete your profile then apply in the <Link to="/sell" className="text-[#b30452] font-bold hover:underline">Seller Hub</Link>
+            </p>
+          </div>
+        </motion.div>
       </div>
     </div>
   );

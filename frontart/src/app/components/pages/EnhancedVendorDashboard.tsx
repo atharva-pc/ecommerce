@@ -122,7 +122,7 @@ export function EnhancedVendorDashboard({ onNavigate }: EnhancedVendorDashboardP
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl mb-2">Vendor Dashboard</h1>
-          <p className="text-gray-600">Welcome back, Meera! Manage your art gallery and track sales</p>
+          <p className="text-gray-600">Welcome back, Dr. Minal! Manage your art gallery and track sales</p>
         </div>
 
         {/* Stats Grid */}
@@ -507,31 +507,30 @@ export function EnhancedVendorDashboard({ onNavigate }: EnhancedVendorDashboardP
                 </CardHeader>
                 <CardContent>
                   <form className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="artist-name">Artist Name</Label>
-                        <Input id="artist-name" defaultValue="Meera Kapoor" />
+                        <Input id="artist-name" defaultValue="Dr. Minal Shinde" />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" defaultValue="meera@example.com" />
+                        <Input id="email" type="email" defaultValue="minal@artvpp.com" />
                       </div>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="specialty">Specialty</Label>
-                      <Input id="specialty" defaultValue="Abstract & Contemporary Art" />
+                      <Input id="specialty" defaultValue="Vibrant storytelling art" />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="bio">Artist Bio</Label>
                       <Textarea
                         id="bio"
                         rows={4}
-                        defaultValue="Contemporary abstract artist specializing in vibrant color palettes and emotional expression through geometric forms."
+                        defaultValue="Award-winning contemporary artist specializing in vibrant abstract compositions and storytelling through art."
                       />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="portfolio">Portfolio URL</Label>
-                      <Input id="portfolio" defaultValue="https://meerakapoor.art" />
+                      <Input id="portfolio" defaultValue="https://minalshinde.art" />
                     </div>
                     <Button className="bg-gradient-to-r from-[#a73f2b] to-[#b30452] hover:brightness-110 hover:shadow-[0px_6px_20px_rgba(179,4,82,0.35)] text-white rounded-[10px] shadow-sm hover:shadow-md transition-all duration-250">
                       Save Changes
@@ -564,7 +563,7 @@ export function EnhancedVendorDashboard({ onNavigate }: EnhancedVendorDashboardP
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="upi">UPI ID</Label>
-                      <Input id="upi" defaultValue="meera@okhdfc" />
+                      <Input id="upi" defaultValue="minal@okhdfc" />
                     </div>
                     <Button variant="outline">Update Payment Details</Button>
                   </form>

@@ -9,6 +9,7 @@ import { getProducts } from '../../utils/api';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'motion/react';
 
 export function ProductCategoryPage() {
   const navigate = useNavigate();
@@ -58,10 +59,7 @@ export function ProductCategoryPage() {
     return () => window.clearInterval(intervalId);
   }, []);
 
-  const availableCategories = useMemo(() => {
-    const cats = new Set(products.map(p => p.category).filter(Boolean));
-    return Array.from(cats) as string[];
-  }, [products]);
+  const availableCategories = ['painting', 'crafts', 'prints', 'other'];
 
   const toggleCategory = (cat: string) => {
     setSelectedCategories(prev =>
@@ -176,7 +174,7 @@ export function ProductCategoryPage() {
                     <p className="text-xs text-gray-500">No categories found.</p>
                   )}
                   {availableCategories.map(cat => (
-                    <label key={cat} className="flex items-center gap-2.5 cursor-pointer group">
+                    <label key={cat} className="flex items-center gap-2.5 cursor-pointer group" onClick={() => toggleCategory(cat)}>
                       <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all duration-200 ${selectedCategories.includes(cat)
                         ? 'bg-gradient-to-r from-[#a73f2b] to-[#b30452] border-[#a73f2b]'
                         : 'border-gray-300 group-hover:border-[#a73f2b]'
@@ -248,64 +246,84 @@ export function ProductCategoryPage() {
             {loading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
                 {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-                  <div key={i} className="animate-pulse flex flex-col bg-white p-3 rounded-xl" style={{ aspectRatio: '2/3' }}>
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="animate-pulse flex flex-col bg-white p-3 rounded-xl"
+                    style={{ aspectRatio: '2/3' }}
+                  >
                     <div className="bg-gray-200 rounded-lg mb-3" style={{ flex: 1 }}></div>
                     <div className="h-3 bg-gray-200 w-2/3 mb-1.5 rounded"></div>
                     <div className="h-3 bg-gray-200 w-1/2 mb-2 rounded"></div>
                     <div className="h-7 bg-gray-200 w-full rounded-lg"></div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             ) : filteredProducts.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-xl shadow-sm border border-gray-100">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-center py-20 bg-white rounded-xl shadow-sm border border-gray-100"
+              >
                 <p className="text-gray-900 text-lg font-semibold">No artworks found</p>
                 <p className="text-gray-500 mb-6 mt-2 text-sm">Try adjusting your filters or search terms</p>
                 <Button variant="outline" onClick={clearFilters} className="rounded-lg">
                   Clear Filters
                 </Button>
-              </div>
+              </motion.div>
             ) : (
-              <div className={viewMode === 'grid' ? 'grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4' : 'flex flex-col gap-4'}>
-                {filteredProducts.map((product) => (
-                  viewMode === 'grid' ? (
-                    <ProductCard
+              <motion.div layout className={viewMode === 'grid' ? 'grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4' : 'flex flex-col gap-4'}>
+                <AnimatePresence mode="popLayout">
+                  {filteredProducts.map((product) => (
+                    <motion.div
+                      layout
                       key={product.id}
-                      product={product}
-                      onViewDetails={() => navigate(`/product/${product.slug || product.id}`)}
-                      onAddToCart={handleAddToCart}
-                    />
-                  ) : (
-                    <div key={product.id} className="flex bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-                      <div className="w-40 h-40 shrink-0 bg-gray-100 cursor-pointer" onClick={() => navigate(`/product/${product.slug || product.id}`)}>
-                        <img src={product.image} alt={product.title} loading="lazy" className="w-full h-full object-cover" />
-                      </div>
-                      <div className="p-4 flex flex-col justify-between flex-1">
-                        <div>
-                          <p className="text-xs text-gray-500 mb-0.5">{product.artist}</p>
-                          <h3 className="text-base font-semibold text-gray-900 cursor-pointer hover:text-[#b30452] line-clamp-1" style={{ fontFamily: 'Inter, sans-serif' }} onClick={() => navigate(`/product/${product.slug || product.id}`)}>
-                            {product.title}
-                          </h3>
-                          <div className="mt-1 flex gap-2 items-center">
-                            <span className="capitalize px-1.5 py-0.5 bg-gray-100 rounded text-[10px] text-gray-600">{product.category}</span>
-                            {product.rating && !isNaN(product.rating) && product.rating > 0 && (
-                              <span className="text-[11px] text-gray-500">⭐ {product.rating.toFixed(1)}</span>
-                            )}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {viewMode === 'grid' ? (
+                        <ProductCard
+                          product={product}
+                          onViewDetails={() => navigate(`/product/${product.slug || product.id}`)}
+                          onAddToCart={handleAddToCart}
+                        />
+                      ) : (
+                        <div className="flex bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-300">
+                          <div className="w-40 h-40 shrink-0 bg-gray-100 cursor-pointer overflow-hidden" onClick={() => navigate(`/product/${product.slug || product.id}`)}>
+                            <img src={product.image} alt={product.title} loading="lazy" className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" />
+                          </div>
+                          <div className="p-4 flex flex-col justify-between flex-1">
+                            <div>
+                              <p className="text-xs text-gray-500 mb-0.5">{product.artist}</p>
+                              <h3 className="text-base font-semibold text-gray-900 cursor-pointer hover:text-[#b30452] transition-colors line-clamp-1" style={{ fontFamily: 'Inter, sans-serif' }} onClick={() => navigate(`/product/${product.slug || product.id}`)}>
+                                {product.title}
+                              </h3>
+                              <div className="mt-1 flex gap-2 items-center">
+                                <span className="capitalize px-1.5 py-0.5 bg-gray-100 rounded text-[10px] text-gray-600">{product.category}</span>
+                                {product.rating && !isNaN(product.rating) && product.rating > 0 && (
+                                  <span className="text-[11px] text-gray-500">⭐ {product.rating.toFixed(1)}</span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between mt-3">
+                              <span className="text-lg font-bold text-gray-900">₹{product.price.toLocaleString('en-IN')}</span>
+                              <Button
+                                className="bg-gradient-to-r from-[#a73f2b] to-[#b30452] text-white h-8 px-4 text-xs font-semibold rounded-lg border-0 shadow-sm hover:shadow-[#b30452]/40 hover:-translate-y-0.5 transition-all duration-300"
+                                onClick={() => handleAddToCart(product)}
+                              >
+                                Add to Cart
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                        <div className="flex items-center justify-between mt-3">
-                          <span className="text-lg font-bold text-gray-900">₹{product.price.toLocaleString('en-IN')}</span>
-                          <Button
-                            className="bg-gradient-to-r from-[#a73f2b] to-[#b30452] text-white h-8 px-4 text-xs font-semibold rounded-lg border-0 shadow-sm hover:shadow-[#b30452]/20 transition-all duration-300"
-                            onClick={() => handleAddToCart(product)}
-                          >
-                            Add to Cart
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                ))}
-              </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </motion.div>
             )}
           </div>
         </div>

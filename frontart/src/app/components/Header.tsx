@@ -66,39 +66,42 @@ export function Header() {
 
   return (
     <motion.header
-      className={`sticky top-0 z-50 bg-white transition-all duration-300 border-b border-gray-100 ${scrolled ? 'shadow-[0_2px_20px_rgba(0,0,0,0.08)]' : 'shadow-none'}`}
+      className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md transition-all duration-500 border-b border-gray-100 ${scrolled ? 'h-[70px] shadow-[0_2px_20px_rgba(0,0,0,0.08)]' : 'h-[80px] shadow-none'}`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      transition={{ duration: 0.4, ease: 'easeOut' }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
     >
-      <div className="max-w-[1600px] mx-auto px-4 md:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-[auto_1fr_auto] items-center h-[80px] gap-4">
+      <div className="max-w-[1600px] mx-auto px-4 md:px-8 h-full">
+        <div className="grid grid-cols-2 md:grid-cols-[auto_1fr_auto] items-center h-full gap-4">
 
           {/* Logo Section - Left */}
           <div className="flex items-center justify-start">
             <motion.button
               onClick={() => navigate('/')}
               className="group relative flex items-center gap-1.5"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               <img
                 src={logo}
                 alt="ARTVPP"
-                className="h-14 md:h-16 w-auto object-contain transition-all duration-300 group-hover:drop-shadow-[0_0_20px_rgba(255,122,24,0.55)]"
+                className={`w-auto object-contain transition-all duration-500 group-hover:drop-shadow-[0_0_20px_rgba(255,122,24,0.4)] ${scrolled ? 'h-12' : 'h-14 md:h-16'}`}
               />
             </motion.button>
           </div>
 
           {/* Center Navigation + Search */}
-          <div className="hidden md:flex items-center justify-center gap-8 lg:gap-10">
-            <nav className="flex items-center gap-6 lg:gap-8">
-              {navItems.map((item) => (
-                <div
+          <div className="hidden md:flex items-center justify-center gap-8 lg:gap-11">
+            <nav className="flex items-center gap-6 lg:gap-9">
+              {navItems.map((item, index) => (
+                <motion.div
                   key={item.value}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 + index * 0.1, duration: 0.5 }}
                   className="relative text-center group"
                 >
-                  <motion.button
+                  <button
                     onClick={() => {
                       if (item.hasDropdown) {
                         setActiveDropdown(activeDropdown === item.value ? null : item.value);
@@ -107,15 +110,24 @@ export function Header() {
                         setActiveDropdown(null);
                       }
                     }}
-                    className="flex items-center py-1"
+                    className="flex flex-col items-center py-2 relative"
                   >
-                    <span className={`text-sm font-medium transition-colors whitespace-nowrap ${isActive(item.path) || (activeDropdown === item.value)
-                      ? 'text-slate-900'
-                      : 'text-slate-700 hover:text-slate-900'
+                    <span className={`text-sm font-semibold transition-all duration-300 whitespace-nowrap ${isActive(item.path) || (activeDropdown === item.value)
+                      ? 'text-[#b30452] scale-105'
+                      : 'text-slate-600 hover:text-slate-900'
                       }`}>
                       {item.label}
                     </span>
-                  </motion.button>
+                    
+                    {/* Active Underline Indicator */}
+                    {(isActive(item.path) || activeDropdown === item.value) && (
+                      <motion.div
+                        layoutId="nav-underline"
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#a73f2b] to-[#b30452] rounded-full"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                  </button>
 
                   {/* Mega Menu Overlay */}
                   <AnimatePresence>
@@ -182,22 +194,25 @@ export function Header() {
                       </>
                     )}
                   </AnimatePresence>
-                </div>
+                </motion.div>
               ))}
             </nav>
 
             {/* Desktop Search */}
             <form onSubmit={handleSearch} className="w-full max-w-sm">
-              <div className="relative">
+              <motion.div 
+                className="relative"
+                whileHover={{ scale: 1.01 }}
+              >
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
                 <Input
                   type="search"
                   placeholder="Search artworks, artists..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 h-10 w-full rounded-full bg-gray-50 border border-gray-200 hover:border-gray-300 focus-visible:ring-2 focus-visible:ring-[#b30452]/30 focus-visible:border-[#b30452] focus:bg-white text-sm text-gray-900 placeholder:text-gray-400 transition-all duration-200"
+                  className="pl-10 pr-4 h-10 w-full rounded-full bg-gray-50 border border-gray-200 hover:border-gray-300 focus-visible:ring-4 focus-visible:ring-[#b30452]/20 focus-visible:border-[#b30452] focus:bg-white text-sm text-gray-900 placeholder:text-gray-400 transition-all duration-300"
                 />
-              </div>
+              </motion.div>
             </form>
           </div>
 
@@ -207,9 +222,12 @@ export function Header() {
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="hover:text-slate-900 text-slate-700 transition-colors uppercase flex items-center gap-2 whitespace-nowrap">
+                    <motion.button 
+                      whileHover={{ y: -1 }}
+                      className="hover:text-slate-900 text-slate-700 transition-colors uppercase flex items-center gap-2 whitespace-nowrap"
+                    >
                       {user.name} <ChevronDown className="w-3 h-3" />
-                    </button>
+                    </motion.button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => navigate(getPrimaryDashboardPath())}>
@@ -234,13 +252,14 @@ export function Header() {
                 </DropdownMenu>
               ) : (
                 <>
-                  <button
+                  <motion.button
+                    whileHover={{ y: -1 }}
                     onClick={() => navigate('/register')}
                     className="flex items-center gap-1 text-slate-700 hover:text-slate-900 transition-colors whitespace-nowrap"
                   >
                     <User className="w-5 h-5" />
                     <span>Join</span>
-                  </button>
+                  </motion.button>
                   <Button
                     onClick={() => navigate('/login')}
                     className="text-white px-5 py-2 text-xs lg:text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-250 border-0 bg-gradient-to-r from-[#a73f2b] to-[#b30452] hover:brightness-110 hover:shadow-[0px_6px_20px_rgba(179,4,82,0.35)]"
@@ -251,17 +270,26 @@ export function Header() {
                 </>
               )}
 
-              <button onClick={() => navigate('/cart')} className="flex items-center gap-2 hover:text-slate-900 text-slate-700 transition-colors uppercase group whitespace-nowrap">
+              <motion.button 
+                whileHover={{ scale: 1.1, rotate: -5 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/cart')} 
+                className="flex items-center gap-2 hover:text-[#b30452] text-slate-700 transition-colors uppercase group whitespace-nowrap p-1"
+              >
                 <div className="relative">
-                  <ShoppingCart className="w-4 h-4 text-slate-700 group-hover:text-slate-900 transition-colors" />
+                  <ShoppingCart className="w-5 h-5 text-slate-700 group-hover:text-[#b30452] transition-colors" />
                   {cartCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-[#a73f2b] hover:bg-[#b30452] text-white text-[9px] w-3 h-3 flex items-center justify-center rounded-full font-medium shadow-sm">
+                    <motion.span 
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-2 -right-2 bg-[#b30452] text-white text-[9px] w-3.5 h-3.5 flex items-center justify-center rounded-full font-bold shadow-md border border-white"
+                    >
                       {cartCount}
-                    </span>
+                    </motion.span>
                   )}
                 </div>
-                {user && <span className="hidden xl:inline">VIEW CART</span>}
-              </button>
+                {user && <span className="hidden xl:inline font-bold text-xs">VIEW CART</span>}
+              </motion.button>
             </div>
 
             {/* Mobile Menu Button - Shown only on small screens */}

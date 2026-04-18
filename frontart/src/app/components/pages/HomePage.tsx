@@ -34,6 +34,8 @@ export function HomePage() {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [selectedArtist, setSelectedArtist] = useState<any>(null);
+  const [artistArtworks, setArtistArtworks] = useState<any[]>([]);
+  const [loadingPortfolio, setLoadingPortfolio] = useState(false);
 
   const [featuredArtworks, setFeaturedArtworks] = useState<any[]>([]);
 
@@ -85,9 +87,33 @@ export function HomePage() {
 
 
 
-  const handleViewPortfolio = (artistId: string) => {
+  const handleViewPortfolio = async (artistId: string) => {
     const artist = featuredArtists.find(a => a.id === artistId);
+    if (!artist) return;
+
     setSelectedArtist(artist);
+    setLoadingPortfolio(true);
+    setArtistArtworks([]);
+
+    try {
+      // If we have a mongoId, use that for precise filtering by the artist reference
+      // Otherwise fallback to searching by name
+      const queryParams: any = { limit: 6 };
+      if (artist.mongoId) {
+        queryParams.artist = artist.mongoId;
+      } else {
+        queryParams.search = artist.name;
+      }
+
+      const res = await getProducts(queryParams);
+      if (res.success && res.data?.products) {
+        setArtistArtworks(res.data.products);
+      }
+    } catch (e) {
+      console.error('Failed to fetch artist portfolio:', e);
+    } finally {
+      setLoadingPortfolio(false);
+    }
   };
 
   return (
@@ -152,13 +178,13 @@ export function HomePage() {
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
                     filter: "drop-shadow(2px 2px 14px rgba(0,0,0,0.35))",
-                    fontFamily: "Calibri, 'Segoe UI', Arial, sans-serif",
                     lineHeight: "1.2",
                     letterSpacing: "-1px",
                     fontWeight: "900"
                   }}
                 >
-                  ArtVPP
+                  <span style={{ fontFamily: "'Playfair Display', serif" }}>art</span>
+                  <span style={{ fontFamily: "'Poppins', sans-serif", fontWeight: "600" }}>VPP</span>
                 </span>
               </motion.div>
               {/* CTA Buttons */}
@@ -262,7 +288,13 @@ export function HomePage() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-8">
+          <motion.div
+            variants={stagger}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-8"
+          >
             {featuredArtworks.length === 0 ? (
               // Loading skeleton
               Array.from({ length: 4 }).map((_, i) => (
@@ -313,7 +345,7 @@ export function HomePage() {
                 </motion.div>
               ))
             )}
-          </div>
+          </motion.div>
 
           <motion.div variants={fadeIn} className="text-center mt-16">
             <Button
@@ -743,20 +775,30 @@ export function HomePage() {
 
                 <div>
                   <h3 className="text-lg font-medium mb-4 text-gray-900">Portfolio Gallery</h3>
-                  <div className="grid grid-cols-3 gap-4">
-                    {[
-                      "https://res.cloudinary.com/djljjozxa/image/upload/v1771403139/artvpp/frontend/images/a.jpg", "https://res.cloudinary.com/djljjozxa/image/upload/v1771403144/artvpp/frontend/images/d.jpg", "https://res.cloudinary.com/djljjozxa/image/upload/v1771403150/artvpp/frontend/images/g.jpg",
-                      "https://res.cloudinary.com/djljjozxa/image/upload/v1771403160/artvpp/frontend/images/l.jpg", "https://res.cloudinary.com/djljjozxa/image/upload/v1771403164/artvpp/frontend/images/p.jpg", "https://res.cloudinary.com/djljjozxa/image/upload/v1771403183/artvpp/frontend/images/y.jpg"
-                    ].map((img, i) => (
-                      <div key={i} className="aspect-square bg-gray-100 rounded-lg overflow-hidden group cursor-pointer">
-                        <img
-                          src={img}
-                          alt={`Artwork ${i}`}
-                          className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
-                        />
-                      </div>
-                    ))}
-                  </div>
+
+                  {loadingPortfolio ? (
+                    <div className="grid grid-cols-3 gap-4">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="aspect-square bg-gray-100 animate-pulse rounded-lg" />
+                      ))}
+                    </div>
+                  ) : artistArtworks.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-4">
+                      {artistArtworks.map((art, i) => (
+                        <div key={art._id || i} className="aspect-square bg-gray-100 rounded-lg overflow-hidden group cursor-pointer shadow-sm">
+                          <img
+                            src={art.images?.[0]?.url || art.image}
+                            alt={art.title}
+                            className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-8 text-center bg-gray-50 rounded-lg">
+                      <p className="text-gray-500 italic">No artworks uploaded yet.</p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-4 pt-4">

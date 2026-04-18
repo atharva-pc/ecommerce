@@ -79,35 +79,38 @@ export function ProductCard({ product, onViewDetails, onAddToCart }: ProductCard
 
   return (
     <motion.div
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.2, ease: 'easeOut' }}
+      layout
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      whileHover={{ y: -8, transition: { duration: 0.3, ease: 'easeOut' } }}
+      transition={{ duration: 0.4 }}
       className="h-full"
     >
       <div
-        className="group h-full flex flex-col overflow-hidden bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 cursor-pointer"
+        className="group h-full flex flex-col overflow-hidden bg-white rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100 cursor-pointer"
         onClick={() => onViewDetails?.(product)}
-        style={{ borderRadius: '12px' }}
+        style={{ borderRadius: '16px' }}
       >
         {/* Image Container */}
-        <div className="relative overflow-hidden bg-white shrink-0 border-b border-gray-100" style={{ aspectRatio: '3/4', height: '240px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="relative overflow-hidden bg-white shrink-0" style={{ aspectRatio: '3/4', height: '240px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <img
             src={product.image || '/placeholder.jpg'}
             alt={product.title}
             loading="lazy"
-            className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
+            className="h-full w-full object-contain transition-transform duration-700 group-hover:scale-110"
             style={{ maxHeight: '240px', background: 'white' }}
           />
 
-          {/* Overlay on hover */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+          {/* Premium Gradient Overlay on hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/0 via-black/0 to-black/0 group-hover:from-black/10 group-hover:to-transparent transition-all duration-500" />
 
           {/* Badges */}
-          <div className="absolute top-2 left-2 flex flex-col gap-1">
+          <div className="absolute top-3 left-3 flex flex-col gap-1.5">
             {product.isFeatured && (
-              <Badge className="bg-purple-600 hover:bg-purple-600 text-white text-[10px] shadow-sm border-0 rounded-md px-1.5 py-0.5">Featured</Badge>
+              <Badge className="bg-[#b30452] hover:bg-[#b30452] text-white text-[10px] uppercase font-bold tracking-wider shadow-md border-0 rounded-md px-2 py-0.5">Featured</Badge>
             )}
             {product.isNew && (
-              <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px] shadow-sm border-0 rounded-md px-1.5 py-0.5">New</Badge>
+              <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px] uppercase font-bold tracking-wider shadow-md border-0 rounded-md px-2 py-0.5">New</Badge>
             )}
           </div>
 
@@ -130,7 +133,7 @@ export function ProductCard({ product, onViewDetails, onAddToCart }: ProductCard
           </button>
 
           {/* Stock indicator */}
-          {product.stock !== undefined && product.stock > 0 && product.stock <= 3 && (
+          {product.stock !== undefined && product.stock === 1 && (
             <div className="absolute bottom-2 left-2">
               <span className="text-[10px] bg-orange-500 text-white px-1.5 py-0.5 rounded-sm font-medium">
                 Only {product.stock} left
@@ -176,7 +179,7 @@ export function ProductCard({ product, onViewDetails, onAddToCart }: ProductCard
               <p className="text-gray-900 font-bold text-base" style={{ fontFamily: 'Inter, sans-serif' }}>
                 ₹{Number(product.price).toLocaleString('en-IN')}
               </p>
-              {product.stock !== undefined && product.stock <= 5 && product.stock > 0 ? (
+              {product.stock !== undefined && product.stock === 1 ? (
                 <p className="text-[10px] text-orange-500 font-medium">Only {product.stock} left</p>
               ) : null}
             </div>

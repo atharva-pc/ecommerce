@@ -31,7 +31,7 @@ export function VendorDashboard() {
 
   // Mock orders data
   const orders = [
-    { id: 'ORD-1234', product: 'Abstract Dreams', customer: 'Ananya Sharma', amount: 12500, status: 'completed', date: '2026-02-05' },
+    { id: 'ORD-1234', product: 'Abstract Dreams', customer: 'Dr. Shraddha Kaje', amount: 12500, status: 'completed', date: '2026-02-05' },
     { id: 'ORD-1235', product: 'Serene Landscape', customer: 'Rahul Verma', amount: 8900, status: 'processing', date: '2026-02-04' },
     { id: 'ORD-1236', product: 'Urban Nights', customer: 'Priya Patel', amount: 15000, status: 'shipped', date: '2026-02-03' },
     { id: 'ORD-1237', product: 'Colorful Chaos', customer: 'Arjun Singh', amount: 11000, status: 'pending', date: '2026-02-03' },
@@ -232,15 +232,15 @@ export function VendorDashboard() {
                   <div className="space-y-4">
                     <div>
                       <label className="text-sm font-medium">Artist Name</label>
-                      <p className="text-gray-600">Meera Kapoor</p>
+                      <p className="text-gray-600">Dr. Minal Shinde</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium">Email</label>
-                      <p className="text-gray-600">meera@example.com</p>
+                      <p className="text-gray-600">minal@artvpp.com</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium">Portfolio URL</label>
-                      <p className="text-gray-600">https://meerakapoor.art</p>
+                      <p className="text-gray-600">https://minalshinde.art</p>
                     </div>
                     <Button variant="outline">Edit Profile</Button>
                   </div>
@@ -260,7 +260,7 @@ export function VendorDashboard() {
                     </div>
                     <div>
                       <label className="text-sm font-medium">UPI ID</label>
-                      <p className="text-gray-600">meera@okhdfc</p>
+                      <p className="text-gray-600">minal@okhdfc</p>
                     </div>
                     <Button variant="outline">Update Payment Details</Button>
                   </div>

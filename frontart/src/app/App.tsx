@@ -7,6 +7,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { LaunchOverlay } from './components/LaunchOverlay';
 
 import { Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 // Lazy Load Pages
 const HomePage = lazy(() => import('./components/pages/HomePage').then(module => ({ default: module.HomePage })));
@@ -123,122 +124,124 @@ export default function App() {
   );
 
   const STUDENT_SUBMISSION_PUBLIC_PATH = '/student-art-apply-k9x7m2q4r8t1v6';
+  const location = useLocation();
 
   return (
     <AppProvider>
-
       {!launched && <LaunchOverlay onLaunch={() => setLaunched(true)} />}
       <ScrollToTop />
       <Suspense fallback={<PageLoader />}>
-        <Routes>
-          {/* Public Routes wrapped in PublicLayout */}
-          <Route element={<PublicLayout />}>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/marketplace" element={<ProductCategoryPage />} />
-            <Route path="/product/:id" element={<ProductDetailPage />} />
-            <Route path="/services" element={<ServicesPage />} />
-            <Route path="/services/studio-hire" element={<StudioHirePage />} />
-            <Route path="/services/photography" element={<PhotographyServicePage />} />
-            <Route path="/services/calligraphy" element={<CalligraphyServicePage />} />
-            <Route path="/service/:id" element={<ServiceDetailPage />} />
-            <Route path="/workshop/:id" element={<WorkshopDetailPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/verify-email" element={<VerifyEmailPage />} />
-            {/* Handle old /verify/:token format - redirect to new format */}
-            <Route path="/verify/:token" element={<VerifyRedirect />} />
-            <Route path="/auth-success" element={<AuthSuccess />} />
-            <Route path="/sell" element={<SellArtPage />} />
-            <Route path={STUDENT_SUBMISSION_PUBLIC_PATH} element={<StudentSubmissionPage />} />
-            <Route path="/help" element={<HelpPage />} />
-            <Route path="/terms" element={<TermsPage />} />
-            <Route path="/privacy" element={<PrivacyPage />} />
-            <Route path="/returns-refunds" element={<ReturnsRefundsPage />} />
-            <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
-            <Route path="/order-success" element={<OrderSuccessPage />} />
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            {/* Public Routes wrapped in PublicLayout */}
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/marketplace" element={<ProductCategoryPage />} />
+              <Route path="/product/:id" element={<ProductDetailPage />} />
+              <Route path="/services" element={<ServicesPage />} />
+              <Route path="/services/studio-hire" element={<StudioHirePage />} />
+              <Route path="/services/photography" element={<PhotographyServicePage />} />
+              <Route path="/services/calligraphy" element={<CalligraphyServicePage />} />
+              <Route path="/service/:id" element={<ServiceDetailPage />} />
+              <Route path="/workshop/:id" element={<WorkshopDetailPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/verify-email" element={<VerifyEmailPage />} />
+              {/* Handle old /verify/:token format - redirect to new format */}
+              <Route path="/verify/:token" element={<VerifyRedirect />} />
+              <Route path="/auth-success" element={<AuthSuccess />} />
+              <Route path="/sell" element={<SellArtPage />} />
+              <Route path={STUDENT_SUBMISSION_PUBLIC_PATH} element={<StudentSubmissionPage />} />
+              <Route path="/help" element={<HelpPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/returns-refunds" element={<ReturnsRefundsPage />} />
+              <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+              <Route path="/order-success" element={<OrderSuccessPage />} />
 
-            {/* Checkout Routes */}
-            <Route path="/checkout" element={<Navigate to="/checkout/address" replace />} />
-            <Route path="/checkout/address" element={
-              <CheckoutLayout currentStep="address">
-                <AddressStep onNext={() => navigate('/checkout/summary')} />
-              </CheckoutLayout>
-            } />
-            <Route path="/checkout/summary" element={
-              <CheckoutLayout currentStep="summary">
-                <OrderSummaryStep
-                  onNext={() => navigate('/checkout/payment')}
-                  onBack={() => navigate('/checkout/address')}
-                  onChangeAddress={() => navigate('/checkout/address')}
-                />
-              </CheckoutLayout>
-            } />
-            <Route path="/checkout/payment" element={
-              <CheckoutLayout currentStep="payment">
-                <PaymentStep
-                  onSuccess={() => navigate('/order-confirmation')}
-                  onBack={() => navigate('/checkout/summary')}
-                />
-              </CheckoutLayout>
-            } />
+              {/* Checkout Routes */}
+              <Route path="/checkout" element={<Navigate to="/checkout/address" replace />} />
+              <Route path="/checkout/address" element={
+                <CheckoutLayout currentStep="address">
+                  <AddressStep onNext={() => navigate('/checkout/summary')} />
+                </CheckoutLayout>
+              } />
+              <Route path="/checkout/summary" element={
+                <CheckoutLayout currentStep="summary">
+                  <OrderSummaryStep
+                    onNext={() => navigate('/checkout/payment')}
+                    onBack={() => navigate('/checkout/address')}
+                    onChangeAddress={() => navigate('/checkout/address')}
+                  />
+                </CheckoutLayout>
+              } />
+              <Route path="/checkout/payment" element={
+                <CheckoutLayout currentStep="payment">
+                  <PaymentStep
+                    onSuccess={() => navigate('/order-confirmation')}
+                    onBack={() => navigate('/checkout/summary')}
+                  />
+                </CheckoutLayout>
+              } />
 
-            <Route path="*" element={<NotFoundPage />} />
-          </Route>
+              <Route path="*" element={<NotFoundPage />} />
+            </Route>
 
-          {/* Protected User Dashboard Routes */}
-          <Route path="/dashboard/user" element={<ProtectedRoute allowedRoles={['user', 'admin', 'artist']}><UserDashboard /></ProtectedRoute>}>
-            <Route index element={<Navigate to="profile" replace />} />
-            <Route path="profile" element={<ProfileInformation />} />
-            <Route path="addresses" element={<ManageAddresses />} />
-            <Route path="orders" element={<MyOrders />} />
-            <Route path="wishlist" element={<MyWishlist />} />
-            <Route path="payments" element={<Payments />} />
-            <Route path="reviews" element={<MyReviews />} />
-            <Route path="coupons" element={<MyCoupons />} />
-            <Route path="notifications" element={<Notifications />} />
-          </Route>
+            {/* Protected User Dashboard Routes */}
+            <Route path="/dashboard/user" element={<ProtectedRoute allowedRoles={['user', 'admin', 'artist']}><UserDashboard /></ProtectedRoute>}>
+              <Route index element={<Navigate to="profile" replace />} />
+              <Route path="profile" element={<ProfileInformation />} />
+              <Route path="addresses" element={<ManageAddresses />} />
+              <Route path="orders" element={<MyOrders />} />
+              <Route path="wishlist" element={<MyWishlist />} />
+              <Route path="payments" element={<Payments />} />
+              <Route path="reviews" element={<MyReviews />} />
+              <Route path="coupons" element={<MyCoupons />} />
+              <Route path="notifications" element={<Notifications />} />
+            </Route>
 
-          {/* Protected Admin Dashboard Routes */}
-          <Route path="/dashboard/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout /></ProtectedRoute>}>
-            <Route index element={<Navigate to="overview" replace />} />
-            <Route path="overview" element={<AdminOverview />} />
-            <Route path="vendors" element={<AdminVendors />} />
-            <Route path="users" element={<AdminUsers />} />
-            <Route path="artworks" element={<AdminProducts />} />
-            <Route path="orders" element={<AdminOrders />} />
-            <Route path="categories" element={<AdminCategories />} />
-            <Route path="services" element={<AdminServices />} />
-            <Route path="content" element={<AdminContent />} />
-            <Route path="settings" element={<AdminSettings />} />
-            <Route path="support" element={<AdminSupport />} />
-            <Route path="revenue" element={<AdminRevenue />} />
-            <Route path="reports" element={<AdminReports />} />
-          </Route>
+            {/* Protected Admin Dashboard Routes */}
+            <Route path="/dashboard/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout /></ProtectedRoute>}>
+              <Route index element={<Navigate to="overview" replace />} />
+              <Route path="overview" element={<AdminOverview />} />
+              <Route path="vendors" element={<AdminVendors />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="artworks" element={<AdminProducts />} />
+              <Route path="orders" element={<AdminOrders />} />
+              <Route path="categories" element={<AdminCategories />} />
+              <Route path="services" element={<AdminServices />} />
+              <Route path="content" element={<AdminContent />} />
+              <Route path="settings" element={<AdminSettings />} />
+              <Route path="support" element={<AdminSupport />} />
+              <Route path="revenue" element={<AdminRevenue />} />
+              <Route path="reports" element={<AdminReports />} />
+            </Route>
 
-          {/* Vendor Dashboard - to be implemented fully */}
-          {/* Protected Vendor Dashboard Routes */}
-          <Route path="/dashboard/vendor" element={<ProtectedRoute allowedRoles={['artist', 'admin']}><VendorDashboard /></ProtectedRoute>}>
-            <Route index element={<Navigate to="overview" replace />} />
-            <Route path="overview" element={<VendorOverview />} />
-            <Route path="artworks" element={<VendorArtworks />} />
-            <Route path="add-artwork" element={<VendorArtworks />} /> {/* Placeholder */}
-            <Route path="orders" element={<VendorOrders />} />
-            <Route path="earnings" element={<VendorEarnings />} />
-            <Route path="payouts" element={<VendorEarnings />} /> {/* Placeholder */}
-            <Route path="customers" element={<VendorCustomers />} />
-            <Route path="messages" element={<div className="p-8">Messages Placeholder</div>} />
-            <Route path="settings" element={<VendorSettings />} />
-            <Route path="support" element={<div className="p-8">Support Placeholder</div>} />
-          </Route>
+            {/* Vendor Dashboard - to be implemented fully */}
+            {/* Protected Vendor Dashboard Routes */}
+            <Route path="/dashboard/vendor" element={<ProtectedRoute allowedRoles={['artist', 'admin']}><VendorDashboard /></ProtectedRoute>}>
+              <Route index element={<Navigate to="overview" replace />} />
+              <Route path="overview" element={<VendorOverview />} />
+              <Route path="artworks" element={<VendorArtworks />} />
+              <Route path="add-artwork" element={<VendorArtworks />} /> {/* Placeholder */}
+              <Route path="orders" element={<VendorOrders />} />
+              <Route path="earnings" element={<VendorEarnings />} />
+              <Route path="payouts" element={<VendorEarnings />} /> {/* Placeholder */}
+              <Route path="customers" element={<VendorCustomers />} />
+              <Route path="messages" element={<div className="p-8">Messages Placeholder</div>} />
+              <Route path="settings" element={<VendorSettings />} />
+              <Route path="support" element={<div className="p-8">Support Placeholder</div>} />
+            </Route>
 
-          {/* Redirects */}
-          <Route path="/admin" element={<Navigate to="/dashboard/admin" replace />} />
-          <Route path="/vendor" element={<Navigate to="/dashboard/vendor" replace />} />
+            {/* Redirects */}
+            <Route path="/admin" element={<Navigate to="/dashboard/admin" replace />} />
+            <Route path="/vendor" element={<Navigate to="/dashboard/vendor" replace />} />
 
-        </Routes>
+          </Routes>
+        </AnimatePresence>
       </Suspense>
     </AppProvider>
   );

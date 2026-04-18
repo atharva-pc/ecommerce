@@ -5,7 +5,7 @@ export const featuredArtworks = [
   {
     id: '1',
     title: 'Abstract Dreams',
-    artist: 'Meera Kapoor',
+    artist: 'Dr. Minal Shinde',
     image: "https://res.cloudinary.com/djljjozxa/image/upload/v1771403139/artvpp/frontend/images/a.jpg",
     price: 12500,
     category: 'Original Art',
@@ -18,7 +18,7 @@ export const featuredArtworks = [
   {
     id: '2',
     title: 'Serene Landscape',
-    artist: 'Rajesh Kumar',
+    artist: 'Prof. Vinod Mahabale',
     image: "https://res.cloudinary.com/djljjozxa/image/upload/v1771403144/artvpp/frontend/images/d.jpg",
     price: 8900,
     category: 'Original Art',
@@ -31,7 +31,7 @@ export const featuredArtworks = [
   {
     id: '3',
     title: 'Portrait in Blue',
-    artist: 'Ananya Sharma',
+    artist: 'Dr. Shraddha Kaje',
     image: "https://res.cloudinary.com/djljjozxa/image/upload/v1771403150/artvpp/frontend/images/g.jpg",
     price: 15000,
     category: 'Original Art',
@@ -44,7 +44,7 @@ export const featuredArtworks = [
   {
     id: '4',
     title: 'Modern Sculpture',
-    artist: 'Vikram Patel',
+    artist: 'Prof. Swapnil Sakhare',
     image: "https://res.cloudinary.com/djljjozxa/image/upload/v1771403160/artvpp/frontend/images/l.jpg",
     price: 25000,
     category: 'Original Art',
@@ -684,7 +684,7 @@ export const workshops = [
   {
     id: 'workshop-1',
     title: 'Watercolor Landscape Painting',
-    instructor: 'Rajesh Kumar',
+    instructor: 'Prof. Vinod Mahabale',
     description: 'Learn the fundamentals of watercolor landscape painting in this hands-on workshop.',
     image: "https://res.cloudinary.com/djljjozxa/image/upload/v1771403148/artvpp/frontend/images/fgh.jpg",
     price: 2500,
@@ -723,7 +723,7 @@ export const workshops = [
   {
     id: 'workshop-4',
     title: 'Portrait Drawing Certificate Course',
-    instructor: 'Ananya Sharma',
+    instructor: 'Dr. Shraddha Kaje',
     description: 'Comprehensive course on portrait drawing techniques and human anatomy.',
     image: "https://res.cloudinary.com/djljjozxa/image/upload/v1771403154/artvpp/frontend/images/im.jpg",
     price: 8500,
@@ -736,7 +736,7 @@ export const workshops = [
   {
     id: 'workshop-5',
     title: 'Abstract Acrylic Techniques',
-    instructor: 'Meera Kapoor',
+    instructor: 'Dr. Minal Shinde',
     description: 'Explore modern abstract painting techniques and develop your unique style.',
     image: "https://res.cloudinary.com/djljjozxa/image/upload/v1771403157/artvpp/frontend/images/jj.jpg",
     price: 3000,
@@ -765,9 +765,10 @@ export const workshops = [
 export const featuredArtists = [
   {
     id: 'artist-1',
-    name: 'Meera Kapoor',
-    specialty: 'Abstract & Contemporary Art',
-    avatar: "https://res.cloudinary.com/djljjozxa/image/upload/v1771403117/artvpp/frontend/images/1.jpg",
+    mongoId: '699d4217446cd6902571c7d8',
+    name: 'Dr. Minal Shinde',
+    specialty: 'Vibrant storytelling art',
+    avatar: "https://res.cloudinary.com/dylofrbje/image/upload/v1776523098/artist1_gcik5j.jpg",
     artworks: 45,
     followers: '2.3K',
     bio: 'Award-winning contemporary artist specializing in vibrant abstract compositions.',
@@ -775,9 +776,10 @@ export const featuredArtists = [
   },
   {
     id: 'artist-2',
-    name: 'Rajesh Kumar',
-    specialty: 'Landscape & Watercolor',
-    avatar: "https://res.cloudinary.com/djljjozxa/image/upload/v1771403135/artvpp/frontend/images/66.jpg",
+    mongoId: '699d4a6ed3b36e6eee3de6d8',
+    name: 'Prof. Vinod Mahabale',
+    specialty: 'Calligraphy',
+    avatar: "https://res.cloudinary.com/dylofrbje/image/upload/v1776523650/artist2_opoa0i.jpg",
     artworks: 68,
     followers: '3.1K',
     bio: 'Master watercolorist known for stunning landscape paintings and nature scenes.',
@@ -785,9 +787,10 @@ export const featuredArtists = [
   },
   {
     id: 'artist-3',
-    name: 'Ananya Sharma',
-    specialty: 'Portrait & Figurative Art',
-    avatar: "https://res.cloudinary.com/djljjozxa/image/upload/v1771403137/artvpp/frontend/images/75.jpg",
+    mongoId: '699d4f0dec5816a86139cf89',
+    name: 'Dr. Shraddha Kaje',
+    specialty: 'Decorative handcrafted art',
+    avatar: "https://res.cloudinary.com/dylofrbje/image/upload/v1776523665/artist4_se8uom.jpg",
     artworks: 52,
     followers: '1.8K',
     bio: 'Renowned portrait artist with expertise in realistic oil paintings.',
@@ -795,9 +798,9 @@ export const featuredArtists = [
   },
   {
     id: 'artist-4',
-    name: 'Vikram Patel',
-    specialty: 'Sculpture & 3D Art',
-    avatar: "https://res.cloudinary.com/djljjozxa/image/upload/v1771403138/artvpp/frontend/images/95.jpg",
+    name: 'Prof. Swapnil Sakhare',
+    specialty: 'Photography',
+    avatar: "https://res.cloudinary.com/dylofrbje/image/upload/v1776523666/artist3_l3lvsy.jpg",
     artworks: 34,
     followers: '1.5K',
     bio: 'Contemporary sculptor creating thought-provoking bronze and mixed media works.',
@@ -878,8 +881,8 @@ export const platformUsers = [
   },
   {
     id: 'user-2',
-    name: 'Meera Kapoor',
-    email: 'meera@artvpp.com',
+    name: 'Dr. Minal Shinde',
+    email: 'minal@artvpp.com',
     role: 'vendor',
     joinDate: '2023-08-10',
     totalRevenue: 125000,
@@ -901,8 +904,8 @@ export const platformUsers = [
   },
   {
     id: 'user-4',
-    name: 'Rajesh Kumar',
-    email: 'rajesh@artvpp.com',
+    name: 'Prof. Vinod Mahabale',
+    email: 'vinod@artvpp.com',
     role: 'vendor',
     joinDate: '2023-06-05',
     totalRevenue: 98000,
@@ -953,7 +956,7 @@ export const platformOrders = [
   {
     id: 'ORD-001',
     customer: 'Priya Sharma',
-    vendor: 'Meera Kapoor',
+    vendor: 'Dr. Minal Shinde',
     product: 'Abstract Dreams',
     amount: 12500,
     commission: 1875,
@@ -963,7 +966,7 @@ export const platformOrders = [
   {
     id: 'ORD-002',
     customer: 'Rahul Verma',
-    vendor: 'Rajesh Kumar',
+    vendor: 'Prof. Vinod Mahabale',
     product: 'Serene Landscape',
     amount: 8900,
     commission: 1335,
@@ -973,7 +976,7 @@ export const platformOrders = [
   {
     id: 'ORD-003',
     customer: 'Ananya Patel',
-    vendor: 'Meera Kapoor',
+    vendor: 'Dr. Minal Shinde',
     product: 'Modern Sculpture',
     amount: 25000,
     commission: 3750,
@@ -983,7 +986,7 @@ export const platformOrders = [
   {
     id: 'ORD-004',
     customer: 'Priya Sharma',
-    vendor: 'Rajesh Kumar',
+    vendor: 'Prof. Vinod Mahabale',
     product: 'Portrait in Blue',
     amount: 15000,
     commission: 2250,
@@ -1010,28 +1013,28 @@ export const adminAnalyticsData = {
   ],
   topVendors: [
     {
-      name: 'Meera Kapoor',
+      name: 'Dr. Minal Shinde',
       revenue: 125000,
       orders: 45,
       rating: 4.9,
       avatar: "https://res.cloudinary.com/djljjozxa/image/upload/v1771403172/artvpp/frontend/images/tyu.jpg"
     },
     {
-      name: 'Rajesh Kumar',
+      name: 'Prof. Vinod Mahabale',
       revenue: 98000,
       orders: 38,
       rating: 4.8,
       avatar: "https://res.cloudinary.com/djljjozxa/image/upload/v1771403174/artvpp/frontend/images/vbh.jpg"
     },
     {
-      name: 'Ananya Sharma',
+      name: 'Dr. Shraddha Kaje',
       revenue: 87000,
       orders: 32,
       rating: 4.9,
       avatar: "https://res.cloudinary.com/djljjozxa/image/upload/v1771403182/artvpp/frontend/images/xcfg.jpg"
     },
     {
-      name: 'Vikram Patel',
+      name: 'Prof. Swapnil Sakhare',
       revenue: 76000,
       orders: 28,
       rating: 4.7,
