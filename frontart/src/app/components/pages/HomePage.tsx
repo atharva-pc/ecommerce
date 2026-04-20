@@ -6,7 +6,8 @@ import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
 import { featuredArtists as mockFeaturedArtists } from '../../data/mockData';
-import { getProducts, getFeaturedArtists } from '../../utils/api';
+import { getProducts, getFeaturedArtists, getPublicFeaturedArtworks } from '../../utils/api';
+import { toast } from 'sonner';
 import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 // Slider images are now loaded from Cloudinary URLs
@@ -120,24 +121,34 @@ export function HomePage() {
     setArtistArtworks([]);
 
     try {
-      // If the artist is linked to a user account, fetch their specifically featured artworks
-      if (artist.artistId) {
-        const res = await getPublicFeaturedArtworks(artist.artistId);
-        if (res.success && res.data && res.data.length > 0) {
+      let finalArtistId = artist.artistId;
+      
+      // If no linked account ID, try to find one by name search (proactive linking)
+      if (!finalArtistId && artist.name) {
+        const searchRes = await getProducts({ search: `"${artist.name.trim()}"`, limit: 1 });
+        if (searchRes.success && searchRes.data?.products?.length > 0) {
+          finalArtistId = searchRes.data.products[0].artist?._id || searchRes.data.products[0].artist;
+        }
+      }
+
+      // Step 1: If we have a valid-looking ID, try fetching specified/approved works
+      if (finalArtistId && finalArtistId.length > 10 && finalArtistId !== 'undefined' && finalArtistId !== 'null') {
+        const res = await getPublicFeaturedArtworks(finalArtistId, artist.name);
+        if (res.success && typeof res.data === 'object' && Array.isArray(res.data) && res.data.length > 0) {
           setArtistArtworks(res.data);
           setLoadingPortfolio(false);
           return;
         }
       }
       
-      // Fallback: If no account/featured art, search products strictly by artist name
-      // use "title" or "artist" specifically if possible. Using "search" can be broad.
-      const res = await getProducts({ search: `"${artist.name}"`, limit: 6 });
-      if (res.success && res.data?.products) {
-        setArtistArtworks(res.data.products);
+      // Step 2: Final Fallback - Search purely by name string using the new robust backend filter
+      const nameSearchRes = await getProducts({ artistName: artist.name.trim(), limit: 12 });
+      if (nameSearchRes.success && nameSearchRes.data?.products) {
+        setArtistArtworks(nameSearchRes.data.products);
       }
     } catch (e) {
       console.error('Failed to fetch artist portfolio:', e);
+      toast.error('Could not load portfolio gallery.');
     } finally {
       setLoadingPortfolio(false);
     }
@@ -810,12 +821,16 @@ export function HomePage() {
                   ) : artistArtworks.length > 0 ? (
                     <div className="grid grid-cols-3 gap-4">
                       {artistArtworks.map((art, i) => (
-                        <div key={art._id || i} className="aspect-square bg-gray-100 rounded-lg overflow-hidden group cursor-pointer shadow-sm">
+                        <div key={art._id || i} className="aspect-square bg-gray-100 rounded-lg overflow-hidden group cursor-pointer shadow-sm border border-gray-50 relative">
                           <img
                             src={art.images?.[0]?.url || art.image}
                             alt={art.title}
                             className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1549490349-8643362247b5?w=500&q=80';
+                            }}
                           />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
                         </div>
                       ))}
                     </div>

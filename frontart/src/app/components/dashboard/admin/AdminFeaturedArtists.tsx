@@ -121,30 +121,36 @@ export function AdminFeaturedArtists() {
         setNewStatus(featured.status);
         setIsEditModalOpen(true);
         
-        // Fetch artworks only if artist reference exists
+        // Fetch artworks using ID if available, otherwise fallback to name-based search
         setArtistArtworks([]);
         setSelectedArtworkIds([]);
+        setLoadingArtworks(true);
         
-        if (featured.artist?._id) {
-            setLoadingArtworks(true);
-            try {
-                const res = await getArtistArtworksForFeatured(featured.artist._id);
-                if (res.success) {
-                    setArtistArtworks(res.data);
-                    setSelectedArtworkIds(res.data.filter((a: any) => a.isFeatured).map((a: any) => a._id));
-                }
-            } catch (error) {
-                toast.error('Failed to fetch artist artworks');
-            } finally {
-                setLoadingArtworks(false);
+        try {
+            const artistId = featured.artist?._id || featured.artist || 'undefined';
+            const res = await getArtistArtworksForFeatured(artistId, featured.name);
+            
+            if (res.success) {
+                setArtistArtworks(res.data);
+                setSelectedArtworkIds(res.data.filter((a: any) => a.isFeatured).map((a: any) => a._id));
             }
+        } catch (error) {
+            console.error('Failed to fetch artist artworks:', error);
+            // Don't toast error here as it might be a normal case for unlinked artists
+        } finally {
+            setLoadingArtworks(false);
         }
     };
 
+    const [errorDetails, setErrorDetails] = useState<string | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+
     const handleUpdateFeatured = async () => {
-        if (!selectedFeatured) return;
+        if (!selectedFeatured || isSaving) return;
 
         try {
+            setIsSaving(true);
+            setErrorDetails(null);
             // Update basic info
             const res = await updateFeaturedArtist(selectedFeatured._id, {
                 name: newName,
@@ -155,15 +161,35 @@ export function AdminFeaturedArtists() {
             });
 
             if (res.success) {
-                // Update featured artworks
-                await updateArtistFeaturedArtworks(selectedFeatured.artist._id, selectedArtworkIds);
+                const updatedFeatured = res.data;
+                // Safely extract the ID string
+                const artistInfo = updatedFeatured.artist || selectedFeatured.artist;
+                const finalId = artistInfo?._id || artistInfo;
+                const finalIdString = (typeof finalId === 'string' ? finalId : finalId?.toString())?.replace('[object Object]', '');
+
+                // Update featured artworks only if artist is linked
+                if (finalIdString && finalIdString.length > 5) {
+                    try {
+                        await updateArtistFeaturedArtworks(finalIdString, selectedArtworkIds);
+                    } catch (artErr: any) {
+                        console.error('Artworks update failed:', artErr);
+                        toast.warning('Artist info saved, but artwork selection failed. Please retry selection.');
+                    }
+                }
                 
-                toast.success('Featured artist and artworks updated');
+                toast.success('Featured artist profile updated successfully');
                 setIsEditModalOpen(false);
                 fetchFeaturedArtists();
+            } else {
+                setErrorDetails(res.message || 'Server rejected the update.');
+                toast.error(res.message || 'Server rejected the update. Please check all fields.');
             }
         } catch (error: any) {
-            toast.error(error.message || 'Failed to update');
+            console.error('Save operation failed:', error);
+            setErrorDetails(error.message || 'Unexpected connection error.');
+            toast.error(error.message || 'An unexpected error occurred while saving.');
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -338,7 +364,27 @@ export function AdminFeaturedArtists() {
                     <div className="space-y-6 py-4">
                         <div className="grid gap-2">
                             <Label>Artist Name</Label>
-                            <Input value={newName} onChange={e => setNewName(e.target.value)} />
+                            <div className="flex gap-2">
+                                <Input value={newName} onChange={e => setNewName(e.target.value)} className="flex-1" />
+                                <Button 
+                                    variant="secondary" 
+                                    size="sm"
+                                    disabled={loadingArtworks}
+                                    onClick={() => {
+                                        setLoadingArtworks(true);
+                                        getArtistArtworksForFeatured(selectedFeatured.artist?._id || selectedFeatured.artist || 'undefined', newName)
+                                            .then(res => {
+                                                if (res.success) {
+                                                    setArtistArtworks(res.data);
+                                                    setSelectedArtworkIds(res.data.filter((a: any) => a.isFeatured).map((a: any) => a._id));
+                                                }
+                                            })
+                                            .finally(() => setLoadingArtworks(false));
+                                    }}
+                                >
+                                    {loadingArtworks ? <Loader2 className="w-4 h-4 animate-spin" /> : "Search Artworks"}
+                                </Button>
+                            </div>
                         </div>
                         <div className="grid gap-2">
                             <Label>Avatar Image (URL)</Label>
@@ -368,19 +414,48 @@ export function AdminFeaturedArtists() {
                         </div>
 
                         <div className="border-t pt-4">
-                            <h4 className="font-bold flex items-center gap-2 mb-4">
-                                <ImageIcon className="w-4 h-4" />
-                                Select Artworks to Display on Profile
-                            </h4>
+                            <div className="flex items-center justify-between mb-4">
+                                <h4 className="font-bold flex items-center gap-2">
+                                    <ImageIcon className="w-4 h-4" />
+                                    Select Artworks to Display on Profile
+                                </h4>
+                                <div className="flex gap-2">
+                                    <Input 
+                                        placeholder="Search works by title or alt artist name..." 
+                                        className="h-8 text-[10px] w-64"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                const query = (e.target as HTMLInputElement).value;
+                                                setLoadingArtworks(true);
+                                                getArtistArtworksForFeatured('undefined', query)
+                                                    .then(res => {
+                                                        if (res.success) setArtistArtworks(res.data);
+                                                    })
+                                                    .finally(() => setLoadingArtworks(false));
+                                            }
+                                        }}
+                                    />
+                                    <p className="text-[8px] text-gray-400 self-center">Press Enter to search</p>
+                                </div>
+                            </div>
                             
                             {loadingArtworks ? (
                                 <div className="flex justify-center py-8">
                                     <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
                                 </div>
                             ) : artistArtworks.length === 0 ? (
-                                <p className="text-sm text-center py-4 text-gray-500">No artworks found for this artist.</p>
+                                <div className="text-center py-4 space-y-2">
+                                    <p className="text-sm text-gray-500">No artworks found in the system for this artist name/account.</p>
+                                    <p className="text-[10px] text-muted-foreground italic">Check if the artist has uploaded works and if their display name matches exactly.</p>
+                                </div>
                             ) : (
-                                <div className="grid grid-cols-3 gap-3">
+                                <div className="space-y-4">
+                                    <div className="flex gap-4 text-[10px] bg-gray-50 p-2 rounded justify-around font-medium">
+                                        <div className="text-green-600">Approved: {artistArtworks.filter((a: any) => a.verification?.status === 'approved').length}</div>
+                                        <div className="text-orange-600">Pending: {artistArtworks.filter((a: any) => !a.verification?.status || a.verification?.status === 'pending').length}</div>
+                                        <div className="text-red-600">Rejected: {artistArtworks.filter((a: any) => a.verification?.status === 'rejected').length}</div>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-3">
                                     {artistArtworks.map(art => (
                                         <div 
                                             key={art._id}
@@ -397,6 +472,18 @@ export function AdminFeaturedArtists() {
                                                     (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1549490349-8643362247b5?w=200&q=80';
                                                 }}
                                             />
+                                            
+                                            {/* Status Badge */}
+                                            <div className="absolute top-1 left-1">
+                                                <Badge className={cn(
+                                                    "text-[8px] px-1 py-0 border-0",
+                                                    art.verification?.status === 'approved' ? "bg-green-500" : 
+                                                    art.verification?.status === 'rejected' ? "bg-red-500" : "bg-orange-500"
+                                                )}>
+                                                    {art.verification?.status || 'pending'}
+                                                </Badge>
+                                            </div>
+
                                             {selectedArtworkIds.includes(art._id) && (
                                                 <div className="absolute top-1 right-1 bg-[#b30452] text-white rounded-full p-0.5">
                                                     <Star className="w-3 h-3 fill-white" />
@@ -407,13 +494,32 @@ export function AdminFeaturedArtists() {
                                             </div>
                                         </div>
                                     ))}
+                                    </div>
                                 </div>
                             )}
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
-                        <Button className="bg-[#b30452] text-white" onClick={handleUpdateFeatured}>Save Changes</Button>
+                    <DialogFooter className="flex items-center justify-between w-full">
+                        <div className="flex-1">
+                            {errorDetails && <p className="text-[10px] text-red-500 font-medium line-clamp-2">{errorDetails}</p>}
+                        </div>
+                        <div className="flex gap-2">
+                            <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+                            <Button 
+                                className="bg-[#b30452] text-white min-w-[120px]" 
+                                onClick={handleUpdateFeatured}
+                                disabled={isSaving}
+                            >
+                                {isSaving ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        Saving...
+                                    </>
+                                ) : (
+                                    'Save Changes'
+                                )}
+                            </Button>
+                        </div>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

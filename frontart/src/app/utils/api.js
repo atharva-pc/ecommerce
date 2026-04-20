@@ -699,12 +699,18 @@ export const deleteFeaturedArtist = (id) => apiRequest(`/featured-artists/${id}`
     method: 'DELETE'
 });
 
-export const getArtistArtworksForFeatured = (id) => apiRequest(`/featured-artists/artists/${id}/artworks`);
+export const getArtistArtworksForFeatured = (id, name = '') => {
+    const query = name ? `?name=${encodeURIComponent(name)}` : '';
+    return apiRequest(`/featured-artists/artists/${id}/artworks${query}`);
+};
 
 export const updateArtistFeaturedArtworks = (id, artworkIds) => apiRequest(`/featured-artists/artists/${id}/featured-artworks`, {
     method: 'PUT',
     body: JSON.stringify({ artworkIds })
 });
 
-export const getPublicFeaturedArtworks = (id) => apiRequest(`/featured-artists/artists/${id}/public-featured-artworks`);
+export const getPublicFeaturedArtworks = (id, name = '') => {
+    const query = name ? `?name=${encodeURIComponent(name)}` : '';
+    return apiRequest(`/featured-artists/artists/${id}/public-featured-artworks${query}`);
+};
 

@@ -98,7 +98,8 @@ export const getProducts = async (req, res) => {
             search,
             sortBy = "createdAt",
             sortOrder = "desc",
-            artist
+            artist,
+            artistName
         } = req.query;
 
         // Only show approved and active products to public
@@ -117,6 +118,23 @@ export const getProducts = async (req, res) => {
 
         if (category) query.category = category;
         if (artist) query.artist = artist;
+        
+        // Handle name-based artist filtering if no ID was provided
+        if (!artist && artistName) {
+            const escapedName = artistName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const foundUser = await User.findOne({
+                $or: [
+                    { displayName: { $regex: new RegExp(escapedName.replace(/ /g, '.*'), "i") } },
+                    { username: { $regex: new RegExp(escapedName.replace(/ /g, '.*'), "i") } }
+                ]
+            });
+            if (foundUser) {
+                query.artist = foundUser._id;
+            } else {
+                // If no user found by name, force empty result instead of showing everything
+                query.artist = new mongoose.Types.ObjectId(); 
+            }
+        }
         if (minPrice || maxPrice) {
             query.price = {};
             if (minPrice) query.price.$gte = Number(minPrice);

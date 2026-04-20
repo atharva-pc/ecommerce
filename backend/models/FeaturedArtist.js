@@ -39,10 +39,13 @@ const featuredArtistSchema = new mongoose.Schema(
 
 export const FeaturedArtist = mongoose.model("FeaturedArtist", featuredArtistSchema);
 
-// Handle migration: drop old unique index on 'artist' if it exists (only after DB connection)
+// Handle migration: drop old unique indexes if they exist (only after DB connection)
 mongoose.connection.once("open", () => {
-    FeaturedArtist.collection.dropIndex("artist_1").catch(() => {
-        // Index might not exist or already dropped, which is fine
-    });
+    // Drop unique index on artist if it exists
+    FeaturedArtist.collection.dropIndex("artist_1").catch(() => {});
+    // Drop unique index on name if it exists (allows profile name corrections)
+    FeaturedArtist.collection.dropIndex("name_1").catch(() => {});
+    // Drop any other potential unique index
+    FeaturedArtist.collection.dropIndex("name_unique").catch(() => {});
 });
 
