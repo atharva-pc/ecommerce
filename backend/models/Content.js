@@ -98,7 +98,6 @@ const contentSchema = new mongoose.Schema(
 );
 
 // Indexes
-contentSchema.index({ key: 1 });
 contentSchema.index({ type: 1, isActive: 1 });
 
 // Instance Methods

@@ -342,6 +342,84 @@ const renderCategorySpecificFields = (
     }
 };
 
+const getSubmitBlockers = (
+    form: {
+        displayName: string;
+        username: string;
+        email: string;
+        phone: string;
+        password: string;
+        confirmPassword: string;
+        fullName: string;
+        bio: string;
+        street: string;
+        city: string;
+        state: string;
+        pincode: string;
+        termsAccepted: boolean;
+    },
+    profilePicture: File | null,
+    artworks: ArtworkDraft[],
+    usernameAvailable: boolean | null,
+    emailAvailable: boolean | null
+) => {
+    const blockers: string[] = [];
+
+    if (!profilePicture) blockers.push('Profile picture is required');
+    if (!form.displayName.trim()) blockers.push('Display name is required');
+
+    const username = form.username.trim();
+    if (!username) blockers.push('Username is required');
+    else if (username.length < 3) blockers.push('Username must be at least 3 characters');
+    else if (!/^[a-zA-Z0-9_]+$/.test(username)) blockers.push('Username can contain only letters, numbers, and underscores');
+
+    if (!form.email.trim()) blockers.push('Email is required');
+    if (!form.phone.trim()) blockers.push('Phone number is required');
+
+    if (!form.password) blockers.push('Password is required');
+    else {
+        if (form.password.length < 8) blockers.push('Password must be at least 8 characters');
+        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(form.password)) {
+            blockers.push('Password must include uppercase, lowercase, and a number');
+        }
+    }
+
+    if (!form.confirmPassword) blockers.push('Confirm password is required');
+    if (form.password !== form.confirmPassword) blockers.push('Passwords do not match');
+
+    if (!form.fullName.trim()) blockers.push('Full name is required');
+
+    const bioWordCount = form.bio.trim() ? form.bio.trim().split(/\s+/).length : 0;
+    if (bioWordCount < 15) blockers.push('Bio must be at least 15 words');
+    if (form.bio.trim().length < 50) blockers.push('Bio must be at least 50 characters');
+
+    if (!form.street.trim()) blockers.push('Postal address is required');
+    if (!form.city.trim()) blockers.push('City is required');
+    if (!form.state.trim()) blockers.push('State is required');
+
+    const pincode = form.pincode.trim();
+    if (!pincode) blockers.push('Pincode is required');
+    else if (!/^\d{6}$/.test(pincode)) blockers.push('Pincode must be exactly 6 digits');
+
+    if (!artworks.length) blockers.push('Add at least one artwork');
+
+    artworks.forEach((a, idx) => {
+        const label = `Artwork #${idx + 1}`;
+        if (!a.title.trim()) blockers.push(`${label}: title is required`);
+        if (!a.price.trim() || Number(a.price) <= 0) blockers.push(`${label}: valid price is required`);
+        if (!a.size.trim()) blockers.push(`${label}: size is required`);
+        if (!a.medium.trim()) blockers.push(`${label}: medium/material is required`);
+        if (a.files.length < 1) blockers.push(`${label}: at least 1 image is required`);
+        if (!validateCategoryMeta(a)) blockers.push(`${label}: complete category-specific details`);
+    });
+
+    if (!form.termsAccepted) blockers.push('Accept Terms & Conditions to continue');
+    if (usernameAvailable === false) blockers.push('Username is already taken');
+    if (emailAvailable === false) blockers.push('Email is already registered');
+
+    return blockers;
+};
+
 export function StudentSubmissionPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [referenceId, setReferenceId] = useState('');
@@ -478,26 +556,14 @@ export function StudentSubmissionPage() {
         artworks.forEach((a) => a.previews.forEach((p) => URL.revokeObjectURL(p)));
     }, [profilePreview, artworks]);
 
-    const requiredReady =
-        !!profilePicture
-        && !!form.displayName.trim()
-        && !!form.username.trim()
-        && !!form.email.trim()
-        && !!form.phone.trim()
-        && !!form.password
-        && form.password === form.confirmPassword
-        && !!form.fullName.trim()
-        && form.bio.trim().split(/\s+/).length >= 15
-        && !!form.street.trim()
-        && !!form.city.trim()
-        && !!form.state.trim()
-        && !!form.pincode.trim()
-        && artworks.length > 0
-        && artworks.every((a) => a.title.trim() && a.price.trim() && a.size.trim() && a.medium.trim() && a.files.length >= 1)
-        && artworks.every((a) => validateCategoryMeta(a))
-        && !!form.termsAccepted
-        && usernameAvailable !== false
-        && emailAvailable !== false;
+    const submitBlockers = getSubmitBlockers(
+        form,
+        profilePicture,
+        artworks,
+        usernameAvailable,
+        emailAvailable
+    );
+    const requiredReady = submitBlockers.length === 0;
 
     const updateArtwork = (index: number, patch: Partial<ArtworkDraft>) => {
         setArtworks((prev) => prev.map((item, idx) => {
@@ -577,8 +643,8 @@ export function StudentSubmissionPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!requiredReady) {
-            toast.error('Please complete all required fields first');
+        if (submitBlockers.length > 0) {
+            toast.error(submitBlockers[0]);
             return;
         }
 
@@ -876,10 +942,15 @@ export function StudentSubmissionPage() {
                         aria-hidden="true"
                     />
 
-                    <Button type="submit" disabled={!requiredReady || isSubmitting} className="w-full md:w-auto bg-gradient-to-r from-[#f97d06] via-[#b42baf] to-[#e33668] text-white hover:opacity-95">
+                    <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto bg-gradient-to-r from-[#f97d06] via-[#b42baf] to-[#e33668] text-white hover:opacity-95">
                         {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
                         Submit for Admin Review
                     </Button>
+                    {!requiredReady && submitBlockers.length > 0 ? (
+                        <p className="text-sm text-red-700 mt-2">
+                            Complete required fields to submit. Next issue: {submitBlockers[0]}
+                        </p>
+                    ) : null}
                 </form>
             </div>
         </div>

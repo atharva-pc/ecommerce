@@ -40,7 +40,8 @@ const defaultDevOrigins = [
     "http://localhost:5174",
     "http://127.0.0.1:5174",
     "https://artvpp-new.vercel.app",
-    "https://artvpp-new-seven.vercel.app"
+    "https://artvpp-new-seven.vercel.app",
+    "https://artvpp.vercel.app"
 ];
 
 const allowedOrigins = [
