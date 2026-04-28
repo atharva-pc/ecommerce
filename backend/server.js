@@ -35,6 +35,7 @@ const PORT = process.env.PORT || 5000;
 
 // CORS - Only allow requests from your frontend domains
 const defaultDevOrigins = [
+    "http://192.168.0.102:5173",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:5174",

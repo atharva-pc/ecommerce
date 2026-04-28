@@ -18,6 +18,9 @@ export function verifyArtistEmailOtp(otp: string): Promise<any>;
 export function getMyArtistApplication(): Promise<any>;
 export function checkStudentSubmissionAvailability(params?: { username?: string; email?: string }): Promise<any>;
 export function submitStudentArtworkSubmission(formData: FormData): Promise<any>;
+
+export function submitStudentArtworkSubmissionAuthenticated(formData: FormData): Promise<any>;
+export function getStudentProfileInfo(): Promise<any>;
 export function getStudentArtworkPublishingSetting(): Promise<any>;
 export function updateStudentArtworkPublishingSetting(enabled: boolean): Promise<any>;
 

@@ -15,8 +15,10 @@ import {
     sendSuggestion,
     checkStudentAvailability,
     submitStudentApplication,
+    submitStudentApplicationAuthenticated,
     getStudentArtworkPublishingSetting,
-    updateStudentArtworkPublishingSetting
+    updateStudentArtworkPublishingSetting,
+    getStudentProfileInfo
 } from "../controllers/artistController.js";
 import { isAuthenticated } from "../middleware/auth.js";
 import { isAdmin, isVerified } from "../middleware/roleCheck.js";
@@ -27,7 +29,8 @@ import {
     reviewArtistValidation,
     rejectApplicationValidation,
     studentAvailabilityValidation,
-    studentSubmissionValidation
+    studentSubmissionValidation,
+    studentSubmissionAuthenticatedValidation
 } from "../validators/userValidate.js";
 import { uploadStudentSubmissionFiles } from "../middleware/upload.js";
 
@@ -126,6 +129,21 @@ router.post(
     uploadStudentSubmissionFiles,
     studentSubmissionValidation,
     submitStudentApplication
+);
+
+router.post(
+    "/student/submit-authenticated",
+    isAuthenticated,
+    studentSubmissionLimiter,
+    uploadStudentSubmissionFiles,
+    studentSubmissionAuthenticatedValidation,
+    submitStudentApplicationAuthenticated
+);
+
+router.get(
+    "/student/profile-info",
+    isAuthenticated,
+    getStudentProfileInfo
 );
 
 // ============================================

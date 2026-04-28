@@ -174,6 +174,13 @@ export const submitStudentArtworkSubmission = (formData) => apiRequest('/artist/
     body: formData
 });
 
+export const submitStudentArtworkSubmissionAuthenticated = (formData) => apiRequest('/artist/student/submit-authenticated', {
+    method: 'POST',
+    body: formData
+});
+
+export const getStudentProfileInfo = () => apiRequest('/artist/student/profile-info');
+
 export const getStudentArtworkPublishingSetting = () =>
     apiRequest('/artist/admin/settings/student-artwork-publishing');
 

@@ -1218,6 +1218,91 @@ export const checkStudentAvailability = async (req, res) => {
     }
 };
 
+const buildStudentArtworkDetails = (parsedArtworksMeta, uploadedArtworkImages) => {
+    return parsedArtworksMeta.map((item, index) => {
+        const imageIndexes = Array.isArray(item.imageIndexes)
+            ? item.imageIndexes
+            : [];
+
+        const images = imageIndexes
+            .map((imageIndex) => uploadedArtworkImages[Number(imageIndex)])
+            .filter(Boolean);
+
+        if (images.length < 1 || images.length > 6) {
+            throw new Error(`Artwork #${index + 1} must have 1 to 6 images`);
+        }
+
+        const requestedPrimary = Number(item.primaryImageIndex);
+        const safePrimaryIndex = Number.isInteger(requestedPrimary)
+            && requestedPrimary >= 0
+            && requestedPrimary < images.length
+            ? requestedPrimary
+            : 0;
+
+        const parsedPrice = Number(item.price);
+        if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
+            throw new Error(`Artwork #${index + 1} must include a valid price`);
+        }
+
+        return {
+            category: String(item.category || "").trim(),
+            title: String(item.title || "").trim(),
+            size: String(item.size || "").trim(),
+            medium: String(item.medium || "").trim(),
+            price: parsedPrice,
+            description: String(item.description || "").trim() || null,
+            primaryImageIndex: safePrimaryIndex,
+            images,
+            categoryMeta: item.categoryMeta || null
+        };
+    });
+};
+
+const buildCompatibilityArtworks = (studentArtworkDetails) => {
+    return studentArtworkDetails
+        .slice(0, 5)
+        .map((artwork, index) => {
+            const primary = artwork.images[artwork.primaryImageIndex] || artwork.images[0];
+            return {
+                url: primary.url,
+                publicId: primary.publicId,
+                title: artwork.title || `Artwork ${index + 1}`,
+                description: artwork.description || ""
+            };
+        });
+};
+
+const createStudentPendingActions = async ({ studentArtworkDetails, userId, applicationId }) => {
+    await PendingAction.insertMany(
+        studentArtworkDetails.map((artwork, artworkIndex) => ({
+            artist: userId,
+            actionType: "create_product",
+            status: "pending",
+            data: {
+                title: artwork.title,
+                displayName: artwork.title,
+                description: artwork.description || `${artwork.title} submitted via student artwork link.`,
+                price: artwork.price,
+                comparePrice: null,
+                category: normalizeProductCategory(artwork.category),
+                tags: [artwork.category, artwork.medium].filter(Boolean).map((entry) => String(entry).toLowerCase()),
+                stock: 1,
+                isDigital: normalizeProductCategory(artwork.category) === "digital-art",
+                submissionChannel: "student_link",
+                studentSubmissionMeta: {
+                    applicationId,
+                    artworkIndex,
+                    size: artwork.size,
+                    medium: artwork.medium,
+                    categoryMeta: artwork.categoryMeta || null
+                }
+            },
+            images: artwork.images,
+            artistNote: artwork.description || `Student submission #${artworkIndex + 1}`
+        }))
+    );
+};
+
 // ============================================
 // PUBLIC STUDENT LINK: SUBMIT APPLICATION + CREATE ACCOUNT
 // ============================================
@@ -1320,56 +1405,10 @@ export const submitStudentApplication = async (req, res) => {
             });
         }
 
-        const studentArtworkDetails = parsedArtworksMeta.map((item, index) => {
-            const imageIndexes = Array.isArray(item.imageIndexes)
-                ? item.imageIndexes
-                : [];
-
-            const images = imageIndexes
-                .map((imageIndex) => uploadedArtworkImages[Number(imageIndex)])
-                .filter(Boolean);
-
-            if (images.length < 1 || images.length > 6) {
-                throw new Error(`Artwork #${index + 1} must have 1 to 6 images`);
-            }
-
-            const requestedPrimary = Number(item.primaryImageIndex);
-            const safePrimaryIndex = Number.isInteger(requestedPrimary)
-                && requestedPrimary >= 0
-                && requestedPrimary < images.length
-                ? requestedPrimary
-                : 0;
-
-            const parsedPrice = Number(item.price);
-            if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
-                throw new Error(`Artwork #${index + 1} must include a valid price`);
-            }
-
-            return {
-                category: String(item.category || "").trim(),
-                title: String(item.title || "").trim(),
-                size: String(item.size || "").trim(),
-                medium: String(item.medium || "").trim(),
-                price: parsedPrice,
-                description: String(item.description || "").trim() || null,
-                primaryImageIndex: safePrimaryIndex,
-                images,
-                categoryMeta: item.categoryMeta || null
-            };
-        });
+        const studentArtworkDetails = buildStudentArtworkDetails(parsedArtworksMeta, uploadedArtworkImages);
 
         // Keep admin compatibility with existing artwork preview cards.
-        const compatibilityArtworks = studentArtworkDetails
-            .slice(0, 5)
-            .map((artwork, index) => {
-                const primary = artwork.images[artwork.primaryImageIndex] || artwork.images[0];
-                return {
-                    url: primary.url,
-                    publicId: primary.publicId,
-                    title: artwork.title || `Artwork ${index + 1}`,
-                    description: artwork.description || ""
-                };
-            });
+        const compatibilityArtworks = buildCompatibilityArtworks(studentArtworkDetails);
 
         createdUser = await User.create({
             username: cleanUsername,
@@ -1417,34 +1456,11 @@ export const submitStudentApplication = async (req, res) => {
             applicationVersion: 1
         });
 
-        await PendingAction.insertMany(
-            studentArtworkDetails.map((artwork, artworkIndex) => ({
-                artist: createdUser._id,
-                actionType: "create_product",
-                status: "pending",
-                data: {
-                    title: artwork.title,
-                    displayName: artwork.title,
-                    description: artwork.description || `${artwork.title} submitted via student artwork link.`,
-                    price: artwork.price,
-                    comparePrice: null,
-                    category: normalizeProductCategory(artwork.category),
-                    tags: [artwork.category, artwork.medium].filter(Boolean).map((entry) => String(entry).toLowerCase()),
-                    stock: 1,
-                    isDigital: normalizeProductCategory(artwork.category) === "digital-art",
-                    submissionChannel: "student_link",
-                    studentSubmissionMeta: {
-                        applicationId: createdApplication._id,
-                        artworkIndex,
-                        size: artwork.size,
-                        medium: artwork.medium,
-                        categoryMeta: artwork.categoryMeta || null
-                    }
-                },
-                images: artwork.images,
-                artistNote: artwork.description || `Student submission #${artworkIndex + 1}`
-            }))
-        );
+        await createStudentPendingActions({
+            studentArtworkDetails,
+            userId: createdUser._id,
+            applicationId: createdApplication._id
+        });
 
         return res.status(201).json({
             success: true,
@@ -1463,6 +1479,180 @@ export const submitStudentApplication = async (req, res) => {
         if (createdUser?._id) {
             await User.deleteOne({ _id: createdUser._id }).catch(console.error);
         }
+
+        if (createdApplication?._id) {
+            await ArtistApplication.deleteOne({ _id: createdApplication._id }).catch(console.error);
+            await PendingAction.deleteMany({ "data.studentSubmissionMeta.applicationId": createdApplication._id }).catch(console.error);
+        }
+
+        await cleanupUploadedFiles(req.uploadedFiles || {}).catch(console.error);
+
+        return res.status(500).json({
+            success: false,
+            message: error?.message || "Failed to submit student application"
+        });
+    }
+};
+
+/**
+ * @desc    Submit student application from permanent public link using existing logged-in account
+ * @route   POST /api/v1/artist/student/submit-authenticated
+ * @access  Private
+ */
+export const submitStudentApplicationAuthenticated = async (req, res) => {
+    let createdApplication = null;
+
+    try {
+        const user = await User.findById(req.userId);
+        if (!user) {
+            await cleanupUploadedFiles(req.uploadedFiles || {});
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        const {
+            displayName,
+            phone,
+            fullName,
+            bio,
+            street,
+            city,
+            state,
+            pincode,
+            country,
+            termsAccepted,
+            artworksMeta,
+            honeypot
+        } = req.body;
+
+        if (honeypot && String(honeypot).trim()) {
+            await cleanupUploadedFiles(req.uploadedFiles || {});
+            return res.status(400).json({
+                success: false,
+                message: "Invalid submission"
+            });
+        }
+
+        if (!normalizeBoolean(termsAccepted)) {
+            await cleanupUploadedFiles(req.uploadedFiles || {});
+            return res.status(400).json({
+                success: false,
+                message: "Terms and Conditions must be accepted"
+            });
+        }
+
+        const cleanPhone = String(phone || user.phone || "").replace(/\D/g, "").slice(-10);
+        if (cleanPhone.length !== 10) {
+            await cleanupUploadedFiles(req.uploadedFiles || {});
+            return res.status(400).json({
+                success: false,
+                message: "Phone number must be 10 digits"
+            });
+        }
+
+        const profilePicture = req.uploadedFiles?.profilePicture;
+        const uploadedArtworkImages = req.uploadedFiles?.artworkImages || [];
+
+        if (!uploadedArtworkImages.length) {
+            await cleanupUploadedFiles(req.uploadedFiles || {});
+            return res.status(400).json({
+                success: false,
+                message: "Artwork images are required"
+            });
+        }
+
+        // Use uploaded profile picture or fall back to user's existing avatar
+        let finalProfilePicture = profilePicture;
+        if (!finalProfilePicture && user.avatar) {
+            // Use existing avatar from user profile
+            finalProfilePicture = {
+                url: user.avatar,
+                publicId: null
+            };
+        }
+
+        const parsedArtworksMeta = parseJsonSafe(artworksMeta, []);
+        if (!Array.isArray(parsedArtworksMeta) || parsedArtworksMeta.length < 1) {
+            await cleanupUploadedFiles(req.uploadedFiles || {});
+            return res.status(400).json({
+                success: false,
+                message: "Invalid artwork data"
+            });
+        }
+
+        const studentArtworkDetails = buildStudentArtworkDetails(parsedArtworksMeta, uploadedArtworkImages);
+        const compatibilityArtworks = buildCompatibilityArtworks(studentArtworkDetails);
+
+        const latestStudentSubmission = await ArtistApplication.findOne({
+            userId: user._id,
+            submissionChannel: "student_link"
+        })
+            .sort({ createdAt: -1 })
+            .select("applicationVersion");
+
+        createdApplication = await ArtistApplication.create({
+            userId: user._id,
+            fullName: String(fullName || user.displayName || user.username || "").trim(),
+            profilePicture: finalProfilePicture,
+            bio: String(bio || "").trim(),
+            primaryPhone: user.phone || cleanPhone,
+            secondaryPhone: {
+                number: cleanPhone,
+                isVerified: true
+            },
+            primaryEmail: user.email,
+            secondaryEmail: {
+                address: user.email,
+                isVerified: true
+            },
+            address: {
+                street: String(street || "").trim(),
+                city: String(city || "").trim(),
+                state: String(state || "").trim(),
+                pincode: String(pincode || "").trim(),
+                country: String(country || "India").trim() || "India"
+            },
+            artworks: compatibilityArtworks,
+            studentArtworkDetails,
+            submissionChannel: "student_link",
+            applicantType: "student",
+            termsAccepted: true,
+            status: "pending",
+            applicationVersion: (latestStudentSubmission?.applicationVersion || 0) + 1
+        });
+
+        const normalizedDisplayName = String(displayName || "").trim();
+        if (normalizedDisplayName && normalizedDisplayName !== user.displayName) {
+            user.displayName = normalizedDisplayName;
+        }
+        if (!user.phone) {
+            user.phone = cleanPhone;
+        }
+        user.artistRequest.status = "pending";
+        user.artistRequest.requestedAt = new Date();
+        await user.save();
+
+        await createStudentPendingActions({
+            studentArtworkDetails,
+            userId: user._id,
+            applicationId: createdApplication._id
+        });
+
+        return res.status(201).json({
+            success: true,
+            message: "Thanks for submitting. Your artwork is under review by admin. You will be updated via email.",
+            data: {
+                applicationId: createdApplication._id,
+                accountId: user._id,
+                status: createdApplication.status,
+                submissionChannel: createdApplication.submissionChannel,
+                referenceId: `STU-${String(createdApplication._id).slice(-8).toUpperCase()}`
+            }
+        });
+    } catch (error) {
+        console.error("Submit authenticated student application error:", error);
 
         if (createdApplication?._id) {
             await ArtistApplication.deleteOne({ _id: createdApplication._id }).catch(console.error);
@@ -1548,3 +1738,57 @@ export const updateStudentArtworkPublishingSetting = async (req, res) => {
         });
     }
 }
+
+/**
+ * @desc    Get student profile info (for form pre-population)
+ * @route   GET /api/v1/artist/student/profile-info
+ * @access  Private
+ */
+export const getStudentProfileInfo = async (req, res) => {
+    try {
+        const userId = req.userId;
+
+        // Get the latest student application for this user
+        const application = await ArtistApplication.findOne({ userId })
+            .sort({ createdAt: -1 });
+
+        // Also get user basic info
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        // If we have an application, return its profile data
+        // Otherwise return just the user data
+        const profileData = {
+            displayName: application?.bio ? "" : (user.displayName || ""),
+            fullName: application?.fullName || (user.firstName ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}` : ""),
+            phone: application?.primaryPhone || user.phone || "",
+            bio: application?.bio || user.bio || "",
+            street: application?.address?.street || "",
+            city: application?.address?.city || "",
+            state: application?.address?.state || "",
+            pincode: application?.address?.pincode || "",
+            country: application?.address?.country || "India",
+            email: user.email || ""
+        };
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile info fetched successfully",
+            data: profileData
+        });
+
+    } catch (error) {
+        console.error("Get student profile info error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch profile information"
+        });
+    }
+};
+

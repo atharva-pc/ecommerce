@@ -463,3 +463,105 @@ export const studentSubmissionValidation = [
 
     validate
 ];
+
+/**
+ * Authenticated student submission validation (existing account)
+ */
+export const studentSubmissionAuthenticatedValidation = [
+    body("displayName")
+        .optional()
+        .trim()
+        .isLength({ min: 2, max: 60 }).withMessage("Display name must be 2-60 characters"),
+
+    body("phone")
+        .trim()
+        .notEmpty().withMessage("Phone number is required")
+        .custom((value) => {
+            const cleaned = value.replace(/\D/g, '').slice(-10);
+            if (cleaned.length !== 10) {
+                throw new Error("Phone number must be 10 digits");
+            }
+            return true;
+        }),
+
+    body("fullName")
+        .trim()
+        .notEmpty().withMessage("Full name is required")
+        .isLength({ min: 3, max: 100 }).withMessage("Full name must be 3-100 characters"),
+
+    body("bio")
+        .trim()
+        .notEmpty().withMessage("Bio is required")
+        .isLength({ min: 50, max: 1000 }).withMessage("Bio must be 50-1000 characters")
+        .custom((value) => {
+            const wordCount = value.trim().split(/\s+/).length;
+            if (wordCount < 15) {
+                throw new Error(`Bio must have at least 15 words. Current: ${wordCount} words`);
+            }
+            return true;
+        }),
+
+    body("street")
+        .trim()
+        .notEmpty().withMessage("Street address is required")
+        .isLength({ max: 200 }).withMessage("Street address cannot exceed 200 characters"),
+
+    body("city")
+        .trim()
+        .notEmpty().withMessage("City is required")
+        .isLength({ max: 100 }).withMessage("City cannot exceed 100 characters"),
+
+    body("state")
+        .trim()
+        .notEmpty().withMessage("State is required")
+        .isLength({ max: 100 }).withMessage("State cannot exceed 100 characters"),
+
+    body("pincode")
+        .trim()
+        .notEmpty().withMessage("Pincode is required")
+        .matches(/^[0-9]{6}$/).withMessage("Pincode must be 6 digits"),
+
+    body("country")
+        .optional()
+        .trim()
+        .isLength({ max: 100 }).withMessage("Country cannot exceed 100 characters"),
+
+    body("termsAccepted")
+        .custom((value) => {
+            const asString = String(value).toLowerCase();
+            if (!["true", "1", "yes", "on"].includes(asString)) {
+                throw new Error("You must accept Terms & Conditions");
+            }
+            return true;
+        }),
+
+    body("artworksMeta")
+        .trim()
+        .notEmpty().withMessage("Artwork data is required")
+        .custom((value) => {
+            let parsed;
+            try {
+                parsed = JSON.parse(value);
+            } catch {
+                throw new Error("Invalid artworks metadata");
+            }
+            if (!Array.isArray(parsed) || parsed.length < 1) {
+                throw new Error("At least one artwork block is required");
+            }
+            if (parsed.length > 20) {
+                throw new Error("Maximum 20 artwork blocks are allowed");
+            }
+
+            for (let i = 0; i < parsed.length; i += 1) {
+                const item = parsed[i] || {};
+                const price = Number(item.price);
+                if (!Number.isFinite(price) || price <= 0) {
+                    throw new Error(`Artwork #${i + 1}: valid price is required`);
+                }
+            }
+            return true;
+        }),
+
+    validate
+];
+

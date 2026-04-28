@@ -18,8 +18,11 @@ import {
 import { toast } from 'sonner';
 import {
     checkStudentSubmissionAvailability,
-    submitStudentArtworkSubmission
+    submitStudentArtworkSubmission,
+    submitStudentArtworkSubmissionAuthenticated,
+    getStudentProfileInfo
 } from '../../utils/api';
+import { useApp } from '../../context/AppContext';
 
 const FORM_STORAGE_KEY = 'student-artwork-submission-draft-v1';
 const CATEGORY_OPTIONS = [
@@ -361,31 +364,44 @@ const getSubmitBlockers = (
     profilePicture: File | null,
     artworks: ArtworkDraft[],
     usernameAvailable: boolean | null,
-    emailAvailable: boolean | null
+    emailAvailable: boolean | null,
+    requiresAccountCreation: boolean,
+    isAuthenticated: boolean
 ) => {
     const blockers: string[] = [];
 
-    if (!profilePicture) blockers.push('Profile picture is required');
-    if (!form.displayName.trim()) blockers.push('Display name is required');
-
-    const username = form.username.trim();
-    if (!username) blockers.push('Username is required');
-    else if (username.length < 3) blockers.push('Username must be at least 3 characters');
-    else if (!/^[a-zA-Z0-9_]+$/.test(username)) blockers.push('Username can contain only letters, numbers, and underscores');
-
-    if (!form.email.trim()) blockers.push('Email is required');
-    if (!form.phone.trim()) blockers.push('Phone number is required');
-
-    if (!form.password) blockers.push('Password is required');
-    else {
-        if (form.password.length < 8) blockers.push('Password must be at least 8 characters');
-        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(form.password)) {
-            blockers.push('Password must include uppercase, lowercase, and a number');
-        }
+    if (!requiresAccountCreation && !isAuthenticated) {
+        blockers.push('Please log in to submit with your existing account');
     }
 
-    if (!form.confirmPassword) blockers.push('Confirm password is required');
-    if (form.password !== form.confirmPassword) blockers.push('Passwords do not match');
+    // Profile picture is only required for new account creation
+    if (!profilePicture && !isAuthenticated) blockers.push('Profile picture is required');
+    if (!form.displayName.trim()) blockers.push('Display name is required');
+
+    if (requiresAccountCreation) {
+        const username = form.username.trim();
+        if (!username) blockers.push('Username is required');
+        else if (username.length < 3) blockers.push('Username must be at least 3 characters');
+        else if (!/^[a-zA-Z0-9_]+$/.test(username)) blockers.push('Username can contain only letters, numbers, and underscores');
+
+        if (!form.email.trim()) blockers.push('Email is required');
+
+        if (!form.password) blockers.push('Password is required');
+        else {
+            if (form.password.length < 8) blockers.push('Password must be at least 8 characters');
+            if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(form.password)) {
+                blockers.push('Password must include uppercase, lowercase, and a number');
+            }
+        }
+
+        if (!form.confirmPassword) blockers.push('Confirm password is required');
+        if (form.password !== form.confirmPassword) blockers.push('Passwords do not match');
+
+        if (usernameAvailable === false) blockers.push('Username is already taken');
+        if (emailAvailable === false) blockers.push('Email is already registered');
+    }
+
+    if (!form.phone.trim()) blockers.push('Phone number is required');
 
     if (!form.fullName.trim()) blockers.push('Full name is required');
 
@@ -414,16 +430,21 @@ const getSubmitBlockers = (
     });
 
     if (!form.termsAccepted) blockers.push('Accept Terms & Conditions to continue');
-    if (usernameAvailable === false) blockers.push('Username is already taken');
-    if (emailAvailable === false) blockers.push('Email is already registered');
 
     return blockers;
 };
 
 export function StudentSubmissionPage() {
+    const { user, login } = useApp();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
     const [referenceId, setReferenceId] = useState('');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [authMode, setAuthMode] = useState<'create' | 'login'>('create');
+    const [loginForm, setLoginForm] = useState({
+        email: '',
+        password: ''
+    });
 
     const [form, setForm] = useState({
         displayName: '',
@@ -450,6 +471,7 @@ export function StudentSubmissionPage() {
     const [profilePicture, setProfilePicture] = useState<File | null>(null);
     const [profilePreview, setProfilePreview] = useState<string>('');
     const [artworks, setArtworks] = useState<ArtworkDraft[]>([createArtworkDraft()]);
+    const requiresAccountCreation = !user && authMode === 'create';
 
     const updateArtworkMeta = (
         artworkIndex: number,
@@ -523,6 +545,49 @@ export function StudentSubmissionPage() {
     }, [form, artworks]);
 
     useEffect(() => {
+        if (!user) return;
+
+        setAuthMode('login');
+        
+        // Fetch user's profile info from the backend
+        getStudentProfileInfo()
+            .then((response) => {
+                if (response.success && response.data) {
+                    const profileData = response.data;
+                    setForm((prev) => ({
+                        ...prev,
+                        displayName: profileData.displayName || prev.displayName || user.name || '',
+                        email: profileData.email || user.email || prev.email,
+                        phone: profileData.phone || prev.phone || user.phone || '',
+                        fullName: profileData.fullName || prev.fullName,
+                        bio: profileData.bio || prev.bio,
+                        street: profileData.street || prev.street,
+                        city: profileData.city || prev.city,
+                        state: profileData.state || prev.state,
+                        pincode: profileData.pincode || prev.pincode,
+                        country: profileData.country || prev.country || 'India'
+                    }));
+                }
+            })
+            .catch((error) => {
+                console.error('Failed to fetch profile info:', error);
+                // Fallback: just populate from user object
+                setForm((prev) => ({
+                    ...prev,
+                    displayName: prev.displayName || user.name || '',
+                    email: user.email || prev.email,
+                    phone: prev.phone || user.phone || ''
+                }));
+            });
+    }, [user]);
+
+    useEffect(() => {
+        if (!requiresAccountCreation) {
+            setUsernameAvailable(null);
+            setEmailAvailable(null);
+            return;
+        }
+
         if (!form.username && !form.email) {
             setUsernameAvailable(null);
             setEmailAvailable(null);
@@ -549,7 +614,7 @@ export function StudentSubmissionPage() {
         }, 500);
 
         return () => clearTimeout(timeout);
-    }, [form.username, form.email]);
+    }, [form.username, form.email, requiresAccountCreation]);
 
     useEffect(() => () => {
         if (profilePreview) URL.revokeObjectURL(profilePreview);
@@ -561,7 +626,9 @@ export function StudentSubmissionPage() {
         profilePicture,
         artworks,
         usernameAvailable,
-        emailAvailable
+        emailAvailable,
+        requiresAccountCreation,
+        Boolean(user)
     );
     const requiredReady = submitBlockers.length === 0;
 
@@ -648,7 +715,8 @@ export function StudentSubmissionPage() {
             return;
         }
 
-        if (!profilePicture) {
+        // Profile picture is only required for new account creation, not for logged-in users
+        if (!profilePicture && !user) {
             toast.error('Profile picture is required');
             return;
         }
@@ -662,7 +730,9 @@ export function StudentSubmissionPage() {
                 payload.append(key, String(value));
             });
 
-            payload.append('profilePicture', profilePicture);
+            if (profilePicture) {
+                payload.append('profilePicture', profilePicture);
+            }
 
             artworks.forEach((item) => {
                 item.files.forEach((file) => {
@@ -693,7 +763,9 @@ export function StudentSubmissionPage() {
 
             payload.set('artworksMeta', JSON.stringify(normalizedMeta));
 
-            const response = await submitStudentArtworkSubmission(payload);
+            const response = requiresAccountCreation
+                ? await submitStudentArtworkSubmission(payload)
+                : await submitStudentArtworkSubmissionAuthenticated(payload);
             if (response.success) {
                 setReferenceId(response.data.referenceId || response.data.applicationId);
                 setShowSuccessModal(true);
@@ -704,6 +776,24 @@ export function StudentSubmissionPage() {
             toast.error(error.message || 'Submission failed');
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleInlineLogin = async () => {
+        const normalizedEmail = loginForm.email.trim().toLowerCase();
+        if (!normalizedEmail || !loginForm.password) {
+            toast.error('Please enter both email and password');
+            return;
+        }
+
+        setIsLoggingIn(true);
+        try {
+            await login(normalizedEmail, loginForm.password);
+            toast.success('Logged in. You can now submit new artworks with this account.');
+        } catch (error: any) {
+            toast.error(error?.message || 'Login failed');
+        } finally {
+            setIsLoggingIn(false);
         }
     };
 
@@ -738,74 +828,175 @@ export function StudentSubmissionPage() {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <Card className="border-white/80 shadow-sm">
-                        <CardHeader><CardTitle>User Registration Information</CardTitle></CardHeader>
+                        <CardHeader>
+                            <CardTitle>{requiresAccountCreation ? 'User Registration Information' : 'Account Information'}</CardTitle>
+                            {!user ? (
+                                <CardDescription>
+                                    New student? Create account once. Already submitted before? Log in and reuse your account.
+                                </CardDescription>
+                            ) : (
+                                <CardDescription>
+                                    Logged in as <strong>{user.email}</strong>. This submission will be linked to your existing account.
+                                </CardDescription>
+                            )}
+                        </CardHeader>
                         <CardContent className="grid md:grid-cols-2 gap-4">
-                            <div className="md:col-span-2">
-                                <Label>Profile Picture *</Label>
-                                <div className="mt-2 flex flex-col items-start gap-2">
-                                    <label
-                                        htmlFor="student-profile-picture"
-                                        className="h-24 w-24 rounded-full border-2 border-dashed border-gray-300 bg-white cursor-pointer flex items-center justify-center overflow-hidden hover:border-[#a73f2b]"
+                            {!user ? (
+                                <div className="md:col-span-2 rounded-md border border-[#f1e3d4] bg-white p-3 flex flex-wrap items-center gap-2">
+                                    <Button
+                                        type="button"
+                                        variant={authMode === 'create' ? 'default' : 'outline'}
+                                        onClick={() => setAuthMode('create')}
                                     >
-                                        {profilePreview ? (
-                                            <img src={profilePreview} alt="Profile preview" className="h-full w-full object-cover" />
-                                        ) : (
-                                            <Plus className="w-8 h-8 text-gray-500" />
-                                        )}
-                                    </label>
-                                    <input
-                                        id="student-profile-picture"
-                                        type="file"
-                                        accept="image/jpeg,image/png,image/webp"
-                                        onChange={(e) => onProfileChange(e.target.files?.[0])}
-                                        className="hidden"
-                                    />
-                                    <p className="text-sm text-gray-600">Upload profile picture</p>
+                                        Create New Account
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant={authMode === 'login' ? 'default' : 'outline'}
+                                        onClick={() => setAuthMode('login')}
+                                    >
+                                        Login Existing Account
+                                    </Button>
                                 </div>
-                            </div>
+                            ) : null}
+
+                            {!user && authMode === 'login' ? (
+                                <div className="md:col-span-2 rounded-md border border-[#f1e3d4] bg-white p-4 space-y-3">
+                                    <p className="text-sm text-gray-700">Login once to submit multiple artworks without creating a new account.</p>
+                                    <div className="grid md:grid-cols-2 gap-3">
+                                        <div>
+                                            <Label>Email</Label>
+                                            <Input
+                                                type="email"
+                                                value={loginForm.email}
+                                                onChange={(e) => setLoginForm((prev) => ({ ...prev, email: e.target.value }))}
+                                                placeholder="name@example.com"
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label>Password</Label>
+                                            <Input
+                                                type="password"
+                                                value={loginForm.password}
+                                                onChange={(e) => setLoginForm((prev) => ({ ...prev, password: e.target.value }))}
+                                                placeholder="Enter your password"
+                                            />
+                                        </div>
+                                    </div>
+                                    <Button type="button" onClick={handleInlineLogin} disabled={isLoggingIn}>
+                                        {isLoggingIn ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                                        Login to Continue
+                                    </Button>
+                                </div>
+                            ) : null}
+
+                            {!user ? (
+                                <div className="md:col-span-2">
+                                    <Label>Profile Picture *</Label>
+                                    <div className="mt-2 flex flex-col items-start gap-2">
+                                        <label
+                                            htmlFor="student-profile-picture"
+                                            className="h-24 w-24 rounded-full border-2 border-dashed border-gray-300 bg-white cursor-pointer flex items-center justify-center overflow-hidden hover:border-[#a73f2b]"
+                                        >
+                                            {profilePreview ? (
+                                                <img src={profilePreview} alt="Profile preview" className="h-full w-full object-cover" />
+                                            ) : (
+                                                <Plus className="w-8 h-8 text-gray-500" />
+                                            )}
+                                        </label>
+                                        <input
+                                            id="student-profile-picture"
+                                            type="file"
+                                            accept="image/jpeg,image/png,image/webp"
+                                            onChange={(e) => onProfileChange(e.target.files?.[0])}
+                                            className="hidden"
+                                        />
+                                        <p className="text-sm text-gray-600">Upload profile picture</p>
+                                    </div>
+                                </div>
+                            ) : null}
 
                             <div>
                                 <Label>Display Name *</Label>
-                                <Input value={form.displayName} onChange={(e) => setForm((p) => ({ ...p, displayName: e.target.value }))} maxLength={60} required />
+                                <Input
+                                    value={form.displayName}
+                                    onChange={(e) => setForm((p) => ({ ...p, displayName: e.target.value }))}
+                                    disabled={!!user}
+                                    className={user ? "bg-gray-100" : ""}
+                                    maxLength={60}
+                                    required
+                                />
                             </div>
 
-                            <div>
-                                <Label>Username *</Label>
-                                <Input value={form.username} onChange={(e) => setForm((p) => ({ ...p, username: e.target.value.replace(/\s/g, '') }))} required />
-                                {checkingAvailability ? <p className="text-xs text-gray-500 mt-1">Checking...</p> : null}
-                                {usernameAvailable === false ? <p className="text-xs text-red-600 mt-1">Username already taken</p> : null}
-                                {usernameAvailable === true ? <p className="text-xs text-green-700 mt-1">Username available</p> : null}
-                            </div>
+                            {requiresAccountCreation ? (
+                                <>
+                                    <div>
+                                        <Label>Username *</Label>
+                                        <Input value={form.username} onChange={(e) => setForm((p) => ({ ...p, username: e.target.value.replace(/\s/g, '') }))} required />
+                                        {checkingAvailability ? <p className="text-xs text-gray-500 mt-1">Checking...</p> : null}
+                                        {usernameAvailable === false ? <p className="text-xs text-red-600 mt-1">Username already taken</p> : null}
+                                        {usernameAvailable === true ? <p className="text-xs text-green-700 mt-1">Username available</p> : null}
+                                    </div>
+
+                                    <div>
+                                        <Label>Email *</Label>
+                                        <Input type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} required />
+                                        {emailAvailable === false ? <p className="text-xs text-red-600 mt-1">Email already registered</p> : null}
+                                    </div>
+                                </>
+                            ) : null}
 
                             <div>
-                                <Label>Email *</Label>
-                                <Input type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} required />
-                                {emailAvailable === false ? <p className="text-xs text-red-600 mt-1">Email already registered</p> : null}
+                                <Label>Email</Label>
+                                <Input type="email" value={user?.email || form.email} disabled className="bg-gray-100" />
                             </div>
 
                             <div>
                                 <Label>Phone *</Label>
-                                <Input value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} required />
+                                <Input
+                                    value={form.phone}
+                                    onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+                                    disabled={!!user}
+                                    className={user ? "bg-gray-100" : ""}
+                                    required
+                                />
                             </div>
 
-                            <div>
-                                <Label>Password *</Label>
-                                <Input type="password" value={form.password} onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))} required />
-                            </div>
+                            {requiresAccountCreation ? (
+                                <>
+                                    <div>
+                                        <Label>Password *</Label>
+                                        <Input type="password" value={form.password} onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))} required />
+                                    </div>
 
-                            <div>
-                                <Label>Confirm Password *</Label>
-                                <Input type="password" value={form.confirmPassword} onChange={(e) => setForm((p) => ({ ...p, confirmPassword: e.target.value }))} required />
-                            </div>
+                                    <div>
+                                        <Label>Confirm Password *</Label>
+                                        <Input type="password" value={form.confirmPassword} onChange={(e) => setForm((p) => ({ ...p, confirmPassword: e.target.value }))} required />
+                                    </div>
+                                </>
+                            ) : null}
 
                             <div className="md:col-span-2">
                                 <Label>Full Name *</Label>
-                                <Input value={form.fullName} onChange={(e) => setForm((p) => ({ ...p, fullName: e.target.value }))} required />
+                                <Input
+                                    value={form.fullName}
+                                    onChange={(e) => setForm((p) => ({ ...p, fullName: e.target.value }))}
+                                    disabled={!!user}
+                                    className={user ? "bg-gray-100" : ""}
+                                    required
+                                />
                             </div>
 
                             <div className="md:col-span-2">
                                 <Label>Bio *</Label>
-                                <Textarea value={form.bio} onChange={(e) => setForm((p) => ({ ...p, bio: e.target.value }))} rows={4} required />
+                                <Textarea
+                                    value={form.bio}
+                                    onChange={(e) => setForm((p) => ({ ...p, bio: e.target.value }))}
+                                    disabled={!!user}
+                                    className={user ? "bg-gray-100" : ""}
+                                    rows={4}
+                                    required
+                                />
                             </div>
                         </CardContent>
                     </Card>
@@ -815,12 +1006,55 @@ export function StudentSubmissionPage() {
                         <CardContent className="grid md:grid-cols-2 gap-4">
                             <div className="md:col-span-2">
                                 <Label>Postal Address *</Label>
-                                <Textarea value={form.street} onChange={(e) => setForm((p) => ({ ...p, street: e.target.value }))} rows={3} required />
+                                <Textarea
+                                    value={form.street}
+                                    onChange={(e) => setForm((p) => ({ ...p, street: e.target.value }))}
+                                    disabled={!!user}
+                                    className={user ? "bg-gray-100" : ""}
+                                    rows={3}
+                                    required
+                                />
                             </div>
-                            <div><Label>City *</Label><Input value={form.city} onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))} required /></div>
-                            <div><Label>State *</Label><Input value={form.state} onChange={(e) => setForm((p) => ({ ...p, state: e.target.value }))} required /></div>
-                            <div><Label>Pincode *</Label><Input value={form.pincode} onChange={(e) => setForm((p) => ({ ...p, pincode: e.target.value }))} required /></div>
-                            <div><Label>Country *</Label><Input value={form.country} onChange={(e) => setForm((p) => ({ ...p, country: e.target.value }))} required /></div>
+                            <div>
+                                <Label>City *</Label>
+                                <Input
+                                    value={form.city}
+                                    onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))}
+                                    disabled={!!user}
+                                    className={user ? "bg-gray-100" : ""}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <Label>State *</Label>
+                                <Input
+                                    value={form.state}
+                                    onChange={(e) => setForm((p) => ({ ...p, state: e.target.value }))}
+                                    disabled={!!user}
+                                    className={user ? "bg-gray-100" : ""}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <Label>Pincode *</Label>
+                                <Input
+                                    value={form.pincode}
+                                    onChange={(e) => setForm((p) => ({ ...p, pincode: e.target.value }))}
+                                    disabled={!!user}
+                                    className={user ? "bg-gray-100" : ""}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <Label>Country *</Label>
+                                <Input
+                                    value={form.country}
+                                    onChange={(e) => setForm((p) => ({ ...p, country: e.target.value }))}
+                                    disabled={!!user}
+                                    className={user ? "bg-gray-100" : ""}
+                                    required
+                                />
+                            </div>
                         </CardContent>
                     </Card>
 
