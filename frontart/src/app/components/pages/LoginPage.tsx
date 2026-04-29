@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { Mail, Lock, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Input } from '../ui/input';
@@ -28,6 +28,7 @@ export function LoginPage() {
     email: '',
     password: '',
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -214,7 +215,7 @@ export function LoginPage() {
                 <div>
                   <div className="flex items-center justify-between mb-2 ml-1">
                     <Label className="text-gray-700 font-semibold" htmlFor="password">Password</Label>
-                    <Link to="/forgot-password" size="sm" className="text-xs font-bold text-[#b30452] hover:text-[#a73f2b] transition-colors">
+                    <Link to="/forgot-password" className="text-xs font-bold text-[#b30452] hover:text-[#a73f2b] transition-colors">
                       Forgot?
                     </Link>
                   </div>
@@ -222,13 +223,20 @@ export function LoginPage() {
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-[#b30452] transition-colors" />
                     <Input
                       id="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       value={loginData.password}
                       onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                       required
-                      className="pl-12 h-14 rounded-2xl border-gray-200 focus:border-[#b30452] focus:ring-[#b30452]/10 transition-all bg-white/50"
+                      className="pl-12 pr-12 h-14 rounded-2xl border-gray-200 focus:border-[#b30452] focus:ring-[#b30452]/10 transition-all bg-white/50"
                       placeholder="••••••••"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
                   </div>
                 </div>
 

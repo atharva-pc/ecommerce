@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Mail, Lock, User, Phone, AlertCircle, Loader2 } from 'lucide-react';
+import { Mail, Lock, User, Phone, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Input } from '../ui/input';
@@ -27,6 +27,8 @@ export function RegisterPage() {
     confirmPassword: '',
   });
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Password validation helper
   const validatePassword = (password: string): { valid: boolean; errors: string[] } => {
@@ -280,13 +282,20 @@ export function RegisterPage() {
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-[#b30452] transition-colors" />
                       <Input
                         id="password"
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                         required
-                        className="pl-12 h-14 rounded-2xl border-gray-200 focus:border-[#b30452] focus:ring-[#b30452]/10 transition-all bg-white/50"
+                        className="pl-12 pr-12 h-14 rounded-2xl border-gray-200 focus:border-[#b30452] focus:ring-[#b30452]/10 transition-all bg-white/50"
                         placeholder="••••••••"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
                     </div>
                   </div>
                   <div>
@@ -295,13 +304,20 @@ export function RegisterPage() {
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-[#b30452] transition-colors" />
                       <Input
                         id="confirmPassword"
-                        type="password"
+                        type={showConfirmPassword ? "text" : "password"}
                         value={formData.confirmPassword}
                         onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                         required
-                        className="pl-12 h-14 rounded-2xl border-gray-200 focus:border-[#b30452] focus:ring-[#b30452]/10 transition-all bg-white/50"
+                        className="pl-12 pr-12 h-14 rounded-2xl border-gray-200 focus:border-[#b30452] focus:ring-[#b30452]/10 transition-all bg-white/50"
                         placeholder="••••••••"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                      >
+                        {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
                     </div>
                   </div>
                 </div>

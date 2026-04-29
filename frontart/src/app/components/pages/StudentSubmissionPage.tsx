@@ -6,7 +6,7 @@ import { Textarea } from '../ui/textarea';
 import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Checkbox } from '../ui/checkbox';
-import { Loader2, Plus, Trash2, Upload, CheckCircle2 } from 'lucide-react';
+import { Loader2, Plus, Trash2, Upload, CheckCircle2, User, Mail, Phone, Lock, Image as ImageIcon, Eye, EyeOff } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -445,6 +445,9 @@ export function StudentSubmissionPage() {
         email: '',
         password: ''
     });
+    const [showLoginPassword, setShowLoginPassword] = useState(false);
+    const [showSignupPassword, setShowSignupPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const [form, setForm] = useState({
         displayName: '',
@@ -481,9 +484,10 @@ export function StudentSubmissionPage() {
         setArtworks((prev) => prev.map((item, idx) => {
             if (idx !== artworkIndex) return item;
 
-            const syncedMeta = key === 'frameOption' && value === 'without_frame'
-                ? { sizeWithoutFrame: item.size }
-                : {};
+            const syncedMeta: Record<string, string | boolean> = {};
+            if (key === 'frameOption' && value === 'without_frame') {
+                syncedMeta.sizeWithoutFrame = item.size;
+            }
 
             return {
                 ...item,
@@ -798,17 +802,30 @@ export function StudentSubmissionPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#57b2c7] py-10 px-4">
-            <div className="max-w-5xl mx-auto space-y-6">
-                <Card className=" border-[#f4d7b3] shadow-sm">
-                    <CardHeader>
-                        <CardTitle className="text-2xl font-extrabold uppercase tracking-wide bg-gradient-to-r from-[#f97d06] via-[#b42baf] to-[#e33668] bg-clip-text text-transparent">
-                            Final Artwork Submission
-                        </CardTitle>
-                        <CardDescription className="text-gray-600">Submit your artwork details for admin to review. Check email for current status.</CardDescription>
-                    </CardHeader>
-                </Card>
+        <div className="min-h-screen relative bg-[#F7F8FA] pb-24">
+            {/* Artistic Header Section */}
+            <div className="relative h-[450px] bg-[#0A0A0A] overflow-hidden">
+                <div className="absolute inset-0 z-0">
+                    <img 
+                        src="https://images.unsplash.com/photo-1549490349-8643362247b5?q=80&w=2071&auto=format&fit=crop" 
+                        alt="Art background" 
+                        className="w-full h-full object-cover opacity-40"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-[#F7F8FA]" />
+                </div>
+                
+                <div className="relative z-10 max-w-5xl mx-auto px-6 h-full flex flex-col items-center justify-center text-center">
+                    <h1 className="text-5xl md:text-7xl font-serif font-bold text-white mb-6 drop-shadow-md" style={{ fontFamily: "'Playfair Display', serif" }}>
+                        Share Your Art with the World
+                    </h1>
+                    <p className="text-xl md:text-2xl text-gray-200 max-w-2xl mx-auto font-light leading-relaxed">
+                        Join our curated community of artists. Apply to sell your artworks on ArtVPP and reach collectors globally.
+                    </p>
+                </div>
+            </div>
 
+            {/* Form Container */}
+            <div className="max-w-4xl mx-auto px-6 -mt-24 relative z-20">
                 <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
                     <DialogContent>
                         <DialogHeader>
@@ -826,82 +843,101 @@ export function StudentSubmissionPage() {
                     </DialogContent>
                 </Dialog>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <Card className="border-white/80 shadow-sm">
-                        <CardHeader>
-                            <CardTitle>{requiresAccountCreation ? 'User Registration Information' : 'Account Information'}</CardTitle>
-                            {!user ? (
-                                <CardDescription>
-                                    New student? Create account once. Already submitted before? Log in and reuse your account.
-                                </CardDescription>
-                            ) : (
-                                <CardDescription>
-                                    Logged in as <strong>{user.email}</strong>. This submission will be linked to your existing account.
-                                </CardDescription>
-                            )}
-                        </CardHeader>
-                        <CardContent className="grid md:grid-cols-2 gap-4">
-                            {!user ? (
-                                <div className="md:col-span-2 rounded-md border border-[#f1e3d4] bg-white p-3 flex flex-wrap items-center gap-2">
+                <div className="bg-white/95 backdrop-blur-md rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.1)] p-8 md:p-12 mb-10 border border-white/20">
+                    <div className="text-center mb-10 border-b border-gray-100 pb-8">
+                        <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#a73f2b] to-[#b30452] rounded-2xl mb-6 shadow-lg shadow-[#b30452]/20">
+                            <CheckCircle2 className="w-8 h-8 text-white" />
+                        </div>
+                        <h2 className="text-4xl font-serif font-bold text-gray-900 mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>Final Artwork Submission</h2>
+                        <p className="text-gray-500 text-lg">Submit your artwork details for admin to review. Check email for current status.</p>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-12">
+                        {/* Section 1: Artist Profile */}
+                        <div className="space-y-8">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center">
+                                    <User className="w-5 h-5 text-[#a73f2b]" />
+                                </div>
+                                <h3 className="text-2xl font-bold text-gray-900">1. User Registration Information</h3>
+                            </div>
+
+                            {!user && (
+                                <div className="flex flex-wrap items-center gap-2 bg-gray-50 p-2 rounded-xl border border-gray-100">
                                     <Button
                                         type="button"
-                                        variant={authMode === 'create' ? 'default' : 'outline'}
+                                        variant={authMode === 'create' ? 'default' : 'ghost'}
+                                        className={authMode === 'create' ? 'bg-white text-gray-900 shadow-sm hover:bg-gray-50' : 'text-gray-500 hover:text-gray-700'}
                                         onClick={() => setAuthMode('create')}
                                     >
                                         Create New Account
                                     </Button>
                                     <Button
                                         type="button"
-                                        variant={authMode === 'login' ? 'default' : 'outline'}
+                                        variant={authMode === 'login' ? 'default' : 'ghost'}
+                                        className={authMode === 'login' ? 'bg-white text-gray-900 shadow-sm hover:bg-gray-50' : 'text-gray-500 hover:text-gray-700'}
                                         onClick={() => setAuthMode('login')}
                                     >
                                         Login Existing Account
                                     </Button>
                                 </div>
-                            ) : null}
+                            )}
 
-                            {!user && authMode === 'login' ? (
-                                <div className="md:col-span-2 rounded-md border border-[#f1e3d4] bg-white p-4 space-y-3">
-                                    <p className="text-sm text-gray-700">Login once to submit multiple artworks without creating a new account.</p>
-                                    <div className="grid md:grid-cols-2 gap-3">
-                                        <div>
-                                            <Label>Email</Label>
+                            {!user && authMode === 'login' && (
+                                <div className="bg-orange-50/50 rounded-xl p-6 border border-orange-100 space-y-4">
+                                    <p className="text-sm text-[#a73f2b] font-medium">New student? Create account once. Already submitted before? Log in and reuse your account.</p>
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        <div className="relative">
+                                            <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                                             <Input
                                                 type="email"
                                                 value={loginForm.email}
                                                 onChange={(e) => setLoginForm((prev) => ({ ...prev, email: e.target.value }))}
-                                                placeholder="name@example.com"
+                                                placeholder="Email address"
+                                                className="pl-10 h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b]"
                                             />
                                         </div>
-                                        <div>
-                                            <Label>Password</Label>
+                                        <div className="relative">
+                                            <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                                             <Input
-                                                type="password"
+                                                type={showLoginPassword ? "text" : "password"}
                                                 value={loginForm.password}
                                                 onChange={(e) => setLoginForm((prev) => ({ ...prev, password: e.target.value }))}
-                                                placeholder="Enter your password"
+                                                placeholder="Password"
+                                                className="pl-10 pr-10 h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b]"
                                             />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowLoginPassword(!showLoginPassword)}
+                                                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                                            >
+                                                {showLoginPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                            </button>
                                         </div>
                                     </div>
-                                    <Button type="button" onClick={handleInlineLogin} disabled={isLoggingIn}>
+                                    <Button type="button" onClick={handleInlineLogin} disabled={isLoggingIn} className="w-full bg-gradient-to-br from-[#a73f2b] to-[#b30452] hover:opacity-90 text-white rounded-lg h-11 transition-all">
                                         {isLoggingIn ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                                        Login to Continue
+                                        Secure Login
                                     </Button>
                                 </div>
-                            ) : null}
+                            )}
 
-                            {!user ? (
-                                <div className="md:col-span-2">
-                                    <Label>Profile Picture *</Label>
-                                    <div className="mt-2 flex flex-col items-start gap-2">
+                            {/* Profile Upload */}
+                            {!user && (
+                                <div className="flex flex-col items-center justify-center py-6">
+                                    <Label className="text-sm font-semibold text-gray-700 mb-4 block w-full text-center">Upload profile picture *</Label>
+                                    <div className="relative group">
                                         <label
                                             htmlFor="student-profile-picture"
-                                            className="h-24 w-24 rounded-full border-2 border-dashed border-gray-300 bg-white cursor-pointer flex items-center justify-center overflow-hidden hover:border-[#a73f2b]"
+                                            className={`h-32 w-32 rounded-full border-2 border-dashed bg-gray-50 flex items-center justify-center overflow-hidden cursor-pointer transition-all duration-300 ${profilePreview ? 'border-transparent shadow-md' : 'border-gray-300 hover:border-[#a73f2b] hover:bg-orange-50'}`}
                                         >
                                             {profilePreview ? (
-                                                <img src={profilePreview} alt="Profile preview" className="h-full w-full object-cover" />
+                                                <img src={profilePreview} alt="Profile" className="h-full w-full object-cover" />
                                             ) : (
-                                                <Plus className="w-8 h-8 text-gray-500" />
+                                                <div className="flex flex-col items-center">
+                                                    <Plus className="w-8 h-8 text-gray-400 group-hover:text-[#a73f2b] transition-colors" />
+                                                    <span className="text-[10px] text-gray-400 font-medium mt-1 uppercase tracking-wider group-hover:text-[#a73f2b]">Upload</span>
+                                                </div>
                                             )}
                                         </label>
                                         <input
@@ -911,281 +947,318 @@ export function StudentSubmissionPage() {
                                             onChange={(e) => onProfileChange(e.target.files?.[0])}
                                             className="hidden"
                                         />
-                                        <p className="text-sm text-gray-600">Upload profile picture</p>
                                     </div>
                                 </div>
-                            ) : null}
+                            )}
 
-                            <div>
-                                <Label>Display Name *</Label>
-                                <Input
-                                    value={form.displayName}
-                                    onChange={(e) => setForm((p) => ({ ...p, displayName: e.target.value }))}
-                                    disabled={!!user}
-                                    className={user ? "bg-gray-100" : ""}
-                                    maxLength={60}
-                                    required
-                                />
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium text-gray-700">Display Name *</Label>
+                                    <div className="relative">
+                                        <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                                        <Input
+                                            value={form.displayName}
+                                            onChange={(e) => setForm((p) => ({ ...p, displayName: e.target.value }))}
+                                            disabled={!!user}
+                                            className={`pl-10 h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] ${user ? 'bg-gray-100 border-transparent text-gray-600 opacity-70 cursor-not-allowed shadow-inner font-medium' : 'bg-white'}`}
+                                            maxLength={60}
+                                            placeholder="How you appear to others"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium text-gray-700">Full Legal Name *</Label>
+                                    <Input
+                                        value={form.fullName}
+                                        onChange={(e) => setForm((p) => ({ ...p, fullName: e.target.value }))}
+                                        disabled={!!user}
+                                        className={`h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] ${user ? 'bg-gray-100 border-transparent text-gray-600 opacity-70 cursor-not-allowed shadow-inner font-medium' : 'bg-white'}`}
+                                        placeholder="John Doe"
+                                        required
+                                    />
+                                </div>
+
+                                {requiresAccountCreation && (
+                                    <>
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium text-gray-700">Username *</Label>
+                                            <div className="relative">
+                                                <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                                                <Input 
+                                                    value={form.username} 
+                                                    onChange={(e) => setForm((p) => ({ ...p, username: e.target.value.replace(/\s/g, '') }))} 
+                                                    className="pl-10 h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b]"
+                                                    placeholder="johndoe_art"
+                                                    required 
+                                                />
+                                            </div>
+                                            {checkingAvailability ? <p className="text-xs text-gray-500 mt-1">Checking...</p> : null}
+                                            {usernameAvailable === false ? <p className="text-xs text-red-600 mt-1">Username already taken</p> : null}
+                                            {usernameAvailable === true ? <p className="text-xs text-green-600 mt-1">Username available</p> : null}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium text-gray-700">Email Address *</Label>
+                                            <div className="relative">
+                                                <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                                                <Input 
+                                                    type="email" 
+                                                    value={form.email} 
+                                                    onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} 
+                                                    className="pl-10 h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b]"
+                                                    placeholder="you@example.com"
+                                                    required 
+                                                />
+                                            </div>
+                                            {emailAvailable === false ? <p className="text-xs text-red-600 mt-1">Email already registered</p> : null}
+                                        </div>
+                                    </>
+                                )}
+
+                                {user && (
+                                    <div className="space-y-2">
+                                        <Label className="text-sm font-medium text-gray-700">Email Address</Label>
+                                        <div className="relative">
+                                            <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                                            <Input type="email" value={user?.email || form.email} disabled className="pl-10 h-11 rounded-lg bg-gray-50 border-gray-200 text-gray-500" />
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium text-gray-700">Phone *</Label>
+                                    <div className="relative">
+                                        <Phone className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                                        <Input
+                                            value={form.phone}
+                                            onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+                                            disabled={!!user}
+                                            className={`pl-10 h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] ${user ? 'bg-gray-100 border-transparent text-gray-600 opacity-70 cursor-not-allowed shadow-inner font-medium' : 'bg-white'}`}
+                                            placeholder="+1 (555) 000-0000"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                {requiresAccountCreation && (
+                                    <>
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium text-gray-700">Password *</Label>
+                                            <div className="relative">
+                                                <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                                                <Input type={showSignupPassword ? "text" : "password"} value={form.password} onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))} className="pl-10 pr-10 h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b]" required />
+                                                <button type="button" onClick={() => setShowSignupPassword(!showSignupPassword)} className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none">
+                                                    {showSignupPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-sm font-medium text-gray-700">Confirm Password *</Label>
+                                            <div className="relative">
+                                                <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                                                <Input type={showConfirmPassword ? "text" : "password"} value={form.confirmPassword} onChange={(e) => setForm((p) => ({ ...p, confirmPassword: e.target.value }))} className="pl-10 pr-10 h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b]" required />
+                                                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none">
+                                                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                             </div>
 
-                            {requiresAccountCreation ? (
-                                <>
-                                    <div>
-                                        <Label>Username *</Label>
-                                        <Input value={form.username} onChange={(e) => setForm((p) => ({ ...p, username: e.target.value.replace(/\s/g, '') }))} required />
-                                        {checkingAvailability ? <p className="text-xs text-gray-500 mt-1">Checking...</p> : null}
-                                        {usernameAvailable === false ? <p className="text-xs text-red-600 mt-1">Username already taken</p> : null}
-                                        {usernameAvailable === true ? <p className="text-xs text-green-700 mt-1">Username available</p> : null}
-                                    </div>
-
-                                    <div>
-                                        <Label>Email *</Label>
-                                        <Input type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} required />
-                                        {emailAvailable === false ? <p className="text-xs text-red-600 mt-1">Email already registered</p> : null}
-                                    </div>
-                                </>
-                            ) : null}
-
-                            <div>
-                                <Label>Email</Label>
-                                <Input type="email" value={user?.email || form.email} disabled className="bg-gray-100" />
-                            </div>
-
-                            <div>
-                                <Label>Phone *</Label>
-                                <Input
-                                    value={form.phone}
-                                    onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
-                                    disabled={!!user}
-                                    className={user ? "bg-gray-100" : ""}
-                                    required
-                                />
-                            </div>
-
-                            {requiresAccountCreation ? (
-                                <>
-                                    <div>
-                                        <Label>Password *</Label>
-                                        <Input type="password" value={form.password} onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))} required />
-                                    </div>
-
-                                    <div>
-                                        <Label>Confirm Password *</Label>
-                                        <Input type="password" value={form.confirmPassword} onChange={(e) => setForm((p) => ({ ...p, confirmPassword: e.target.value }))} required />
-                                    </div>
-                                </>
-                            ) : null}
-
-                            <div className="md:col-span-2">
-                                <Label>Full Name *</Label>
-                                <Input
-                                    value={form.fullName}
-                                    onChange={(e) => setForm((p) => ({ ...p, fullName: e.target.value }))}
-                                    disabled={!!user}
-                                    className={user ? "bg-gray-100" : ""}
-                                    required
-                                />
-                            </div>
-
-                            <div className="md:col-span-2">
-                                <Label>Bio *</Label>
+                            <div className="space-y-2">
+                                <Label className="text-sm font-medium text-gray-700">Artist Bio *</Label>
                                 <Textarea
                                     value={form.bio}
                                     onChange={(e) => setForm((p) => ({ ...p, bio: e.target.value }))}
                                     disabled={!!user}
-                                    className={user ? "bg-gray-100" : ""}
+                                    className={`rounded-xl border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] resize-none p-4 ${user ? 'bg-gray-100 border-transparent text-gray-600 opacity-70 cursor-not-allowed shadow-inner font-medium' : 'bg-white'}`}
                                     rows={4}
+                                    placeholder="Tell us about your artistic journey, inspirations, and style (min 15 words)..."
                                     required
                                 />
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
 
-                    <Card className="border-white/80 shadow-sm">
-                        <CardHeader><CardTitle>Address</CardTitle></CardHeader>
-                        <CardContent className="grid md:grid-cols-2 gap-4">
-                            <div className="md:col-span-2">
-                                <Label>Postal Address *</Label>
-                                <Textarea
-                                    value={form.street}
-                                    onChange={(e) => setForm((p) => ({ ...p, street: e.target.value }))}
-                                    disabled={!!user}
-                                    className={user ? "bg-gray-100" : ""}
-                                    rows={3}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <Label>City *</Label>
-                                <Input
-                                    value={form.city}
-                                    onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))}
-                                    disabled={!!user}
-                                    className={user ? "bg-gray-100" : ""}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <Label>State *</Label>
-                                <Input
-                                    value={form.state}
-                                    onChange={(e) => setForm((p) => ({ ...p, state: e.target.value }))}
-                                    disabled={!!user}
-                                    className={user ? "bg-gray-100" : ""}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <Label>Pincode *</Label>
-                                <Input
-                                    value={form.pincode}
-                                    onChange={(e) => setForm((p) => ({ ...p, pincode: e.target.value }))}
-                                    disabled={!!user}
-                                    className={user ? "bg-gray-100" : ""}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <Label>Country *</Label>
-                                <Input
-                                    value={form.country}
-                                    onChange={(e) => setForm((p) => ({ ...p, country: e.target.value }))}
-                                    disabled={!!user}
-                                    className={user ? "bg-gray-100" : ""}
-                                    required
-                                />
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-white/80 shadow-sm">
-                        <CardHeader>
-                            <CardTitle>Artwork Submission</CardTitle>
-                            <CardDescription>Each artwork needs 1-6 images and one cover image.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            {artworks.map((artwork, idx) => (
-                                <div key={idx} className="border border-[#f1e3d4] rounded-lg p-4 space-y-3 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.03)]">
-                                    <div className="flex justify-between items-center">
-                                        <h4 className="font-medium">Artwork #{idx + 1}</h4>
-                                        {artworks.length > 1 && (
-                                            <Button type="button" variant="ghost" size="sm" onClick={() => setArtworks((prev) => prev.filter((_, i) => i !== idx))}>
-                                                <Trash2 className="w-4 h-4 mr-1" /> Remove
-                                            </Button>
-                                        )}
-                                    </div>
-
-                                    <div className="grid md:grid-cols-2 gap-3">
-                                        <div>
-                                            <Label>Category *</Label>
-                                            <Select value={artwork.category} onValueChange={(value) => updateArtwork(idx, { category: value as CategoryOption, categoryMeta: {} })}>
-                                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                                <SelectContent>
-                                                    {CATEGORY_OPTIONS.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div><Label>Title *</Label><Input value={artwork.title} onChange={(e) => updateArtwork(idx, { title: e.target.value })} required /></div>
-                                        <div><Label>Price (INR) *</Label><Input type="number" min="1" step="0.01" value={artwork.price} onChange={(e) => updateArtwork(idx, { price: e.target.value })} required /></div>
-                                        <div><Label>Size (W X H) *</Label><Input value={artwork.size} onChange={(e) => updateArtwork(idx, { size: e.target.value })} required /></div>
-                                        <div><Label>Medium / Material *</Label><Input value={artwork.medium} onChange={(e) => updateArtwork(idx, { medium: e.target.value })} required /></div>
-                                    </div>
-
-                                    <div>
-                                        <Label>Description</Label>
-                                        <Textarea value={artwork.description} onChange={(e) => updateArtwork(idx, { description: e.target.value })} rows={2} />
-                                    </div>
-
-                                    <div className="border border-[#f0e2d8] rounded-md p-3 bg-gradient-to-r from-orange-50/60 to-rose-50/40">
-                                        <p className="text-sm font-medium mb-3">Category Specific Details</p>
-                                        {renderCategorySpecificFields(artwork, idx, updateArtworkMeta)}
-                                    </div>
-
-                                    <div>
-                                        <Label>Images (1-6) *</Label>
-                                        <div className="mt-2 rounded-md border-2 border-dashed border-[#a73f2b] bg-orange-50 p-4">
-                                            <input
-                                                id={`artwork-images-${idx}`}
-                                                type="file"
-                                                multiple
-                                                accept="image/jpeg,image/png,image/webp"
-                                                onChange={(e) => onArtworkFilesChange(idx, e.target.files)}
-                                                className="hidden"
-                                            />
-                                            <label
-                                                htmlFor={`artwork-images-${idx}`}
-                                                className="mx-auto flex w-full max-w-sm cursor-pointer items-center justify-center gap-2 rounded-md bg-[#a73f2b] px-4 py-2 text-center text-sm font-medium text-white transition hover:bg-[#8c3322]"
-                                            >
-                                                <Upload className="h-4 w-4" />
-                                                Choose Artwork Images
-                                            </label>
-                                            <p className="mt-2 text-center text-xs text-gray-600">
-                                                JPG, PNG, WebP up to 10MB each
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {artwork.previews.length > 0 && (
-                                        <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
-                                            {artwork.previews.map((src, imageIdx) => (
-                                                <div key={src} className={`relative border rounded p-1 ${artwork.coverIndex === imageIdx ? 'border-green-500' : 'border-gray-200'}`}>
-                                                    <img src={src} alt={`Artwork ${idx + 1} preview ${imageIdx + 1}`} className="h-20 w-full object-cover rounded" />
-                                                    <div className="mt-1 flex gap-1">
-                                                        <Button type="button" size="sm" variant={artwork.coverIndex === imageIdx ? 'default' : 'outline'} className="h-7 text-xs" onClick={() => updateArtwork(idx, { coverIndex: imageIdx })}>
-                                                            Cover
-                                                        </Button>
-                                                        <Button type="button" size="sm" variant="ghost" className="h-7 text-xs" onClick={() => removeArtworkImage(idx, imageIdx)}>
-                                                            Remove
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                        {/* Section 2: Address */}
+                        <div className="space-y-8 pt-8 border-t border-gray-100">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center">
+                                    <ImageIcon className="w-5 h-5 text-[#a73f2b]" />
                                 </div>
-                            ))}
-
-                            <Button type="button" variant="outline" onClick={() => setArtworks((prev) => [...prev, createArtworkDraft()])}>
-                                <Plus className="w-4 h-4 mr-2" /> Add Another Artwork
-                            </Button>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-white/80 shadow-sm">
-                        <CardHeader><CardTitle>Terms & Conditions</CardTitle></CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="max-h-48 overflow-y-auto border rounded p-3 text-sm text-gray-700">
-                                By submitting this form, you confirm that all information provided and artwork uploaded are your original work or properly licensed, and that your submission respects the rights of others.
-                                Your submission will be reviewed by the admin team, and approved submission will be published on the platform.
-                                You also agree to the ArtVPP Terms, Privacy Policy, and moderation guidelines.
+                                <h3 className="text-2xl font-bold text-gray-900">2. Address</h3>
                             </div>
-                            <div className="flex items-start gap-2">
-                                <Checkbox checked={form.termsAccepted} onCheckedChange={(value) => setForm((p) => ({ ...p, termsAccepted: !!value }))} />
-                                <Label>I have read and agree to the Terms & Conditions and Privacy Policy *</Label>
+                            
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div className="md:col-span-2 space-y-2">
+                                    <Label className="text-sm font-medium text-gray-700">Street Address *</Label>
+                                    <Textarea
+                                        value={form.street}
+                                        onChange={(e) => setForm((p) => ({ ...p, street: e.target.value }))}
+                                        disabled={!!user}
+                                        className={`rounded-xl border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] resize-none p-4 ${user ? 'bg-gray-100 border-transparent text-gray-600 opacity-70 cursor-not-allowed shadow-inner font-medium' : 'bg-white'}`}
+                                        rows={2}
+                                        placeholder="123 Art Street, Studio 4B"
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium text-gray-700">City *</Label>
+                                    <Input value={form.city} onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))} disabled={!!user} className={`h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] ${user ? 'bg-gray-100 border-transparent text-gray-600 opacity-70 cursor-not-allowed shadow-inner font-medium' : 'bg-white'}`} required />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium text-gray-700">State *</Label>
+                                    <Input value={form.state} onChange={(e) => setForm((p) => ({ ...p, state: e.target.value }))} disabled={!!user} className={`h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] ${user ? 'bg-gray-100 border-transparent text-gray-600 opacity-70 cursor-not-allowed shadow-inner font-medium' : 'bg-white'}`} required />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium text-gray-700">Pincode *</Label>
+                                    <Input value={form.pincode} onChange={(e) => setForm((p) => ({ ...p, pincode: e.target.value }))} disabled={!!user} className={`h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] ${user ? 'bg-gray-100 border-transparent text-gray-600 opacity-70 cursor-not-allowed shadow-inner font-medium' : 'bg-white'}`} required />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-sm font-medium text-gray-700">Country *</Label>
+                                    <Input value={form.country} onChange={(e) => setForm((p) => ({ ...p, country: e.target.value }))} disabled={!!user} className={`h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] ${user ? 'bg-gray-100 border-transparent text-gray-600 opacity-70 cursor-not-allowed shadow-inner font-medium' : 'bg-white'}`} required />
+                                </div>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
 
-                    <input
-                        type="text"
-                        value={form.honeypot}
-                        onChange={(e) => setForm((p) => ({ ...p, honeypot: e.target.value }))}
-                        className="hidden"
-                        tabIndex={-1}
-                        autoComplete="off"
-                        aria-hidden="true"
-                    />
+                        {/* Section 3: Artwork Submission */}
+                        <div className="space-y-8 pt-8 border-t border-gray-100">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center">
+                                    <ImageIcon className="w-5 h-5 text-[#a73f2b]" />
+                                </div>
+                                <h3 className="text-2xl font-bold text-gray-900">3. Artwork Submission</h3>
+                            </div>
+                            <p className="text-sm text-gray-500">Each artwork needs 1-6 images and one cover image.</p>
 
-                    <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto bg-gradient-to-r from-[#f97d06] via-[#b42baf] to-[#e33668] text-white hover:opacity-95">
-                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-                        Submit for Admin Review
-                    </Button>
-                    {!requiredReady && submitBlockers.length > 0 ? (
-                        <p className="text-sm text-red-700 mt-2">
-                            Complete required fields to submit. Next issue: {submitBlockers[0]}
-                        </p>
-                    ) : null}
-                </form>
+                            <div className="space-y-8">
+                                {artworks.map((artwork, idx) => (
+                                    <div key={idx} className="border border-gray-200 rounded-2xl p-6 md:p-8 bg-white shadow-sm relative group transition-all hover:border-[#a73f2b]/30 hover:shadow-md">
+                                        <div className="flex justify-between items-center mb-6">
+                                            <h4 className="text-lg font-bold text-gray-900">Artwork #{idx + 1}</h4>
+                                            {artworks.length > 1 && (
+                                                <Button type="button" variant="ghost" size="sm" onClick={() => setArtworks((prev) => prev.filter((_, i) => i !== idx))} className="text-red-500 hover:text-red-700 hover:bg-red-50">
+                                                    <Trash2 className="w-4 h-4 mr-1" /> Remove
+                                                </Button>
+                                            )}
+                                        </div>
+
+                                        <div className="grid md:grid-cols-2 gap-6 mb-6">
+                                            <div className="space-y-2">
+                                                <Label className="text-sm font-medium text-gray-700">Category *</Label>
+                                                <Select value={artwork.category} onValueChange={(value) => updateArtwork(idx, { category: value as CategoryOption, categoryMeta: {} })}>
+                                                    <SelectTrigger className="h-11 rounded-lg border-gray-200 focus:ring-[#a73f2b]"><SelectValue /></SelectTrigger>
+                                                    <SelectContent className="rounded-xl border-gray-100 shadow-xl">
+                                                        {CATEGORY_OPTIONS.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="space-y-2"><Label className="text-sm font-medium text-gray-700">Title *</Label><Input value={artwork.title} onChange={(e) => updateArtwork(idx, { title: e.target.value })} className="h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b]" placeholder="Artwork title" required /></div>
+                                            <div className="space-y-2"><Label className="text-sm font-medium text-gray-700">Price (INR) *</Label><Input type="number" min="1" step="0.01" value={artwork.price} onChange={(e) => updateArtwork(idx, { price: e.target.value })} className="h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b]" placeholder="e.g. 5000" required /></div>
+                                            <div className="space-y-2"><Label className="text-sm font-medium text-gray-700">Size (W x H) *</Label><Input value={artwork.size} onChange={(e) => updateArtwork(idx, { size: e.target.value })} className="h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b]" placeholder="e.g. 24x36 inches" required /></div>
+                                            <div className="space-y-2 md:col-span-2"><Label className="text-sm font-medium text-gray-700">Medium / Material *</Label><Input value={artwork.medium} onChange={(e) => updateArtwork(idx, { medium: e.target.value })} className="h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b]" placeholder="e.g. Oil on Canvas" required /></div>
+                                        </div>
+
+                                        <div className="space-y-2 mb-6">
+                                            <Label className="text-sm font-medium text-gray-700">Description</Label>
+                                            <Textarea value={artwork.description} onChange={(e) => updateArtwork(idx, { description: e.target.value })} rows={3} className="rounded-xl border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] resize-none p-4" placeholder="Provide details about the artwork, its inspiration, and history..." />
+                                        </div>
+
+                                        <div className="rounded-xl p-6 bg-gray-50 border border-gray-100 mb-6 transition-all hover:bg-gray-100/50">
+                                            <p className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-[#a73f2b]" /> Category Details</p>
+                                            {renderCategorySpecificFields(artwork, idx, updateArtworkMeta)}
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <Label className="text-sm font-medium text-gray-700">Choose Artwork Images *</Label>
+                                            <div className="border-2 border-dashed border-gray-300 hover:border-[#a73f2b] bg-gray-50/50 hover:bg-orange-50/30 transition-all rounded-xl p-8 text-center cursor-pointer group" onClick={() => document.getElementById(`artwork-images-${idx}`)?.click()}>
+                                                <input
+                                                    id={`artwork-images-${idx}`}
+                                                    type="file"
+                                                    multiple
+                                                    accept="image/jpeg,image/png,image/webp"
+                                                    onChange={(e) => onArtworkFilesChange(idx, e.target.files)}
+                                                    className="hidden"
+                                                />
+                                                <Upload className="mx-auto h-8 w-8 text-gray-400 mb-3 group-hover:text-[#a73f2b] transition-colors" />
+                                                <p className="text-sm font-medium text-gray-900 mb-1">Click to upload images</p>
+                                                <p className="text-xs text-gray-500">JPG, PNG, WebP up to 10MB each</p>
+                                            </div>
+
+                                            {artwork.previews.length > 0 && (
+                                                <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mt-4">
+                                                    {artwork.previews.map((src, imageIdx) => (
+                                                        <div key={src} className={`relative rounded-lg overflow-hidden border-2 transition-all group ${artwork.coverIndex === imageIdx ? 'border-[#a73f2b] shadow-sm' : 'border-gray-200'}`}>
+                                                            <img src={src} alt={`Preview ${imageIdx + 1}`} className="h-24 w-full object-cover" />
+                                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                                                                {artwork.coverIndex !== imageIdx && (
+                                                                    <Button type="button" size="sm" variant="secondary" className="h-6 text-[10px] w-16 px-0 bg-white/90 text-gray-900 hover:bg-white" onClick={(e) => { e.stopPropagation(); updateArtwork(idx, { coverIndex: imageIdx }); }}>Set Cover</Button>
+                                                                )}
+                                                                <Button type="button" size="sm" variant="destructive" className="h-6 text-[10px] w-16 px-0 bg-red-600 hover:bg-red-700" onClick={(e) => { e.stopPropagation(); removeArtworkImage(idx, imageIdx); }}>Remove</Button>
+                                                            </div>
+                                                            {artwork.coverIndex === imageIdx && (
+                                                                <div className="absolute top-1 left-1 bg-[#a73f2b] text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">Cover</div>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+
+                                <Button type="button" variant="outline" className="w-full h-12 rounded-xl border-dashed border-2 border-gray-300 text-gray-600 hover:border-[#a73f2b] hover:text-[#a73f2b] hover:bg-orange-50/50 transition-all font-medium" onClick={() => setArtworks((prev) => [...prev, createArtworkDraft()])}>
+                                    <Plus className="w-5 h-5 mr-2" /> Add Another Artwork
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Terms and Submit */}
+                        <div className="pt-8 border-t border-gray-100 space-y-6">
+                            <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                                <h4 className="font-semibold text-gray-900 mb-3">Terms & Conditions</h4>
+                                <div className="max-h-32 overflow-y-auto text-sm text-gray-600 pr-2 space-y-2 custom-scrollbar">
+                                    <p>By submitting this form, you confirm that all information provided and artwork uploaded are your original work or properly licensed, and that your submission respects the rights of others.</p>
+                                    <p>Your submission will be reviewed by the admin team, and approved submission will be published on the platform.</p>
+                                    <p>You also agree to the ArtVPP Terms, Privacy Policy, and moderation guidelines.</p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-start gap-3 mt-4">
+                                <Checkbox id="terms" checked={form.termsAccepted} onCheckedChange={(value) => setForm((p) => ({ ...p, termsAccepted: !!value }))} className="mt-1 h-5 w-5 border-gray-300 text-[#a73f2b] focus:ring-[#a73f2b] rounded" />
+                                <Label htmlFor="terms" className="text-sm font-medium text-gray-700 cursor-pointer leading-relaxed">I have read and agree to the Terms & Conditions and Privacy Policy *</Label>
+                            </div>
+
+                            <input
+                                type="text"
+                                value={form.honeypot}
+                                onChange={(e) => setForm((p) => ({ ...p, honeypot: e.target.value }))}
+                                className="hidden"
+                                tabIndex={-1}
+                                autoComplete="off"
+                                aria-hidden="true"
+                            />
+
+                            <div className="pt-4 flex flex-col items-center">
+                                <Button type="submit" disabled={isSubmitting || !form.termsAccepted} className={`w-full md:w-auto min-w-[200px] h-14 rounded-xl text-lg font-bold text-white transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 ${(!form.termsAccepted || isSubmitting) ? 'bg-gray-400 cursor-not-allowed shadow-none hover:translate-y-0' : 'bg-gradient-to-br from-[#a73f2b] to-[#b30452] hover:opacity-90'}`}>
+                                    {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin mr-2" /> : <Upload className="w-5 h-5 mr-2" />}
+                                    Submit for Admin Review
+                                </Button>
+                                
+                                {!requiredReady && submitBlockers.length > 0 && form.termsAccepted ? (
+                                    <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-lg max-w-lg w-full text-center">
+                                        <p className="text-sm font-medium text-red-600 flex items-center justify-center gap-2">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-red-500 block"></span>
+                                            Complete required fields to submit. Next issue: {submitBlockers[0]}
+                                        </p>
+                                    </div>
+                                ) : null}
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     );
