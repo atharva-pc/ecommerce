@@ -23,6 +23,7 @@ import {
     getStudentProfileInfo
 } from '../../utils/api';
 import { useApp } from '../../context/AppContext';
+import imageCompression from 'browser-image-compression';
 
 const FORM_STORAGE_KEY = 'student-artwork-submission-draft-v1';
 const CATEGORY_OPTIONS = [
@@ -734,15 +735,24 @@ export function StudentSubmissionPage() {
                 payload.append(key, String(value));
             });
 
+            const compressionOptions = {
+                maxSizeMB: 0.5,
+                maxWidthOrHeight: 1920,
+                useWebWorker: true,
+                initialQuality: 0.8
+            };
+
             if (profilePicture) {
-                payload.append('profilePicture', profilePicture);
+                const compressedProfile = await imageCompression(profilePicture, compressionOptions);
+                payload.append('profilePicture', compressedProfile, profilePicture.name);
             }
 
-            artworks.forEach((item) => {
-                item.files.forEach((file) => {
-                    payload.append('artworkImages', file);
-                });
-            });
+            for (const item of artworks) {
+                for (const file of item.files) {
+                    const compressedFile = await imageCompression(file, compressionOptions);
+                    payload.append('artworkImages', compressedFile, file.name);
+                }
+            }
 
             // Build global image indexes in the same order as appended files.
             let globalImageIndex = 0;
