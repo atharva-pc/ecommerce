@@ -923,33 +923,31 @@ export function StudentSubmissionPage() {
                             )}
 
                             {/* Profile Upload */}
-                            {!user && (
-                                <div className="flex flex-col items-center justify-center py-6">
-                                    <Label className="text-sm font-semibold text-gray-700 mb-4 block w-full text-center">Upload profile picture *</Label>
-                                    <div className="relative group">
-                                        <label
-                                            htmlFor="student-profile-picture"
-                                            className={`h-32 w-32 rounded-full border-2 border-dashed bg-gray-50 flex items-center justify-center overflow-hidden cursor-pointer transition-all duration-300 ${profilePreview ? 'border-transparent shadow-md' : 'border-gray-300 hover:border-[#a73f2b] hover:bg-orange-50'}`}
-                                        >
-                                            {profilePreview ? (
-                                                <img src={profilePreview} alt="Profile" className="h-full w-full object-cover" />
-                                            ) : (
-                                                <div className="flex flex-col items-center">
-                                                    <Plus className="w-8 h-8 text-gray-400 group-hover:text-[#a73f2b] transition-colors" />
-                                                    <span className="text-[10px] text-gray-400 font-medium mt-1 uppercase tracking-wider group-hover:text-[#a73f2b]">Upload</span>
-                                                </div>
-                                            )}
-                                        </label>
-                                        <input
-                                            id="student-profile-picture"
-                                            type="file"
-                                            accept="image/jpeg,image/png,image/webp"
-                                            onChange={(e) => onProfileChange(e.target.files?.[0])}
-                                            className="hidden"
-                                        />
-                                    </div>
+                            <div className="flex flex-col items-center justify-center py-6">
+                                <Label className="text-sm font-semibold text-gray-700 mb-4 block w-full text-center">Upload profile picture *</Label>
+                                <div className="relative group">
+                                    <label
+                                        htmlFor="student-profile-picture"
+                                        className={`h-32 w-32 rounded-full border-2 border-dashed bg-gray-50 flex items-center justify-center overflow-hidden cursor-pointer transition-all duration-300 ${profilePreview ? 'border-transparent shadow-md' : 'border-gray-300 hover:border-[#a73f2b] hover:bg-orange-50'}`}
+                                    >
+                                        {profilePreview ? (
+                                            <img src={profilePreview} alt="Profile" className="h-full w-full object-cover" />
+                                        ) : (
+                                            <div className="flex flex-col items-center">
+                                                <Plus className="w-8 h-8 text-gray-400 group-hover:text-[#a73f2b] transition-colors" />
+                                                <span className="text-[10px] text-gray-400 font-medium mt-1 uppercase tracking-wider group-hover:text-[#a73f2b]">Upload</span>
+                                            </div>
+                                        )}
+                                    </label>
+                                    <input
+                                        id="student-profile-picture"
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/webp"
+                                        onChange={(e) => onProfileChange(e.target.files?.[0])}
+                                        className="hidden"
+                                    />
                                 </div>
-                            )}
+                            </div>
 
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
@@ -959,8 +957,7 @@ export function StudentSubmissionPage() {
                                         <Input
                                             value={form.displayName}
                                             onChange={(e) => setForm((p) => ({ ...p, displayName: e.target.value }))}
-                                            disabled={!!user}
-                                            className={`pl-10 h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] ${user ? 'bg-gray-100 border-transparent text-gray-600 opacity-70 cursor-not-allowed shadow-inner font-medium' : 'bg-white'}`}
+                                            className="pl-10 h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] bg-white"
                                             maxLength={60}
                                             placeholder="How you appear to others"
                                             required
@@ -973,8 +970,7 @@ export function StudentSubmissionPage() {
                                     <Input
                                         value={form.fullName}
                                         onChange={(e) => setForm((p) => ({ ...p, fullName: e.target.value }))}
-                                        disabled={!!user}
-                                        className={`h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] ${user ? 'bg-gray-100 border-transparent text-gray-600 opacity-70 cursor-not-allowed shadow-inner font-medium' : 'bg-white'}`}
+                                        className="h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] bg-white"
                                         placeholder="John Doe"
                                         required
                                     />
@@ -1033,10 +1029,9 @@ export function StudentSubmissionPage() {
                                         <Phone className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                                         <Input
                                             value={form.phone}
-                                            onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
-                                            disabled={!!user}
-                                            className={`pl-10 h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] ${user ? 'bg-gray-100 border-transparent text-gray-600 opacity-70 cursor-not-allowed shadow-inner font-medium' : 'bg-white'}`}
-                                            placeholder="+1 (555) 000-0000"
+                                            onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
+                                            className="pl-10 h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] bg-white"
+                                            placeholder="10-digit number"
                                             required
                                         />
                                     </div>
@@ -1069,14 +1064,15 @@ export function StudentSubmissionPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="text-sm font-medium text-gray-700">Artist Bio *</Label>
+                                <Label className="text-sm font-medium text-gray-700 flex justify-between">
+                                    <span>Artist Bio *</span>
+                                    <span className="text-xs text-gray-500 font-normal">Min 15 words</span>
+                                </Label>
                                 <Textarea
                                     value={form.bio}
                                     onChange={(e) => setForm((p) => ({ ...p, bio: e.target.value }))}
-                                    disabled={!!user}
-                                    className={`rounded-xl border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] resize-none p-4 ${user ? 'bg-gray-100 border-transparent text-gray-600 opacity-70 cursor-not-allowed shadow-inner font-medium' : 'bg-white'}`}
-                                    rows={4}
-                                    placeholder="Tell us about your artistic journey, inspirations, and style (min 15 words)..."
+                                    className="min-h-[120px] rounded-xl border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] bg-white"
+                                    placeholder="Tell us about your art journey, style, and inspiration..."
                                     required
                                 />
                             </div>
@@ -1091,34 +1087,49 @@ export function StudentSubmissionPage() {
                                 <h3 className="text-2xl font-bold text-gray-900">2. Address</h3>
                             </div>
                             
-                            <div className="grid md:grid-cols-2 gap-6">
-                                <div className="md:col-span-2 space-y-2">
+                            <div className="space-y-6">
+                                <div className="space-y-2">
                                     <Label className="text-sm font-medium text-gray-700">Street Address *</Label>
                                     <Textarea
                                         value={form.street}
                                         onChange={(e) => setForm((p) => ({ ...p, street: e.target.value }))}
-                                        disabled={!!user}
-                                        className={`rounded-xl border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] resize-none p-4 ${user ? 'bg-gray-100 border-transparent text-gray-600 opacity-70 cursor-not-allowed shadow-inner font-medium' : 'bg-white'}`}
-                                        rows={2}
-                                        placeholder="123 Art Street, Studio 4B"
+                                        className="h-20 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] bg-white resize-none"
+                                        placeholder="Street Address, Apt, Suite"
                                         required
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-medium text-gray-700">City *</Label>
-                                    <Input value={form.city} onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))} disabled={!!user} className={`h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] ${user ? 'bg-gray-100 border-transparent text-gray-600 opacity-70 cursor-not-allowed shadow-inner font-medium' : 'bg-white'}`} required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-medium text-gray-700">State *</Label>
-                                    <Input value={form.state} onChange={(e) => setForm((p) => ({ ...p, state: e.target.value }))} disabled={!!user} className={`h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] ${user ? 'bg-gray-100 border-transparent text-gray-600 opacity-70 cursor-not-allowed shadow-inner font-medium' : 'bg-white'}`} required />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-medium text-gray-700">Pincode *</Label>
-                                    <Input value={form.pincode} onChange={(e) => setForm((p) => ({ ...p, pincode: e.target.value }))} disabled={!!user} className={`h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] ${user ? 'bg-gray-100 border-transparent text-gray-600 opacity-70 cursor-not-allowed shadow-inner font-medium' : 'bg-white'}`} required />
+                                <div className="grid md:grid-cols-3 gap-6">
+                                    <div className="space-y-2">
+                                        <Label className="text-sm font-medium text-gray-700">City *</Label>
+                                        <Input
+                                            value={form.city}
+                                            onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))}
+                                            className="h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] bg-white"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-sm font-medium text-gray-700">State / Region *</Label>
+                                        <Input
+                                            value={form.state}
+                                            onChange={(e) => setForm((p) => ({ ...p, state: e.target.value }))}
+                                            className="h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] bg-white"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-sm font-medium text-gray-700">Postal Code *</Label>
+                                        <Input
+                                            value={form.pincode}
+                                            onChange={(e) => setForm((p) => ({ ...p, pincode: e.target.value }))}
+                                            className="h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] bg-white"
+                                            required
+                                        />
+                                    </div>
                                 </div>
                                 <div className="space-y-2">
                                     <Label className="text-sm font-medium text-gray-700">Country *</Label>
-                                    <Input value={form.country} onChange={(e) => setForm((p) => ({ ...p, country: e.target.value }))} disabled={!!user} className={`h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] ${user ? 'bg-gray-100 border-transparent text-gray-600 opacity-70 cursor-not-allowed shadow-inner font-medium' : 'bg-white'}`} required />
+                                    <Input value={form.country} onChange={(e) => setForm((p) => ({ ...p, country: e.target.value }))} className="h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] bg-white" required />
                                 </div>
                             </div>
                         </div>

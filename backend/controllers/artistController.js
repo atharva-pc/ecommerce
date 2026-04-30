@@ -1627,8 +1627,50 @@ export const submitStudentApplicationAuthenticated = async (req, res) => {
         if (normalizedDisplayName && normalizedDisplayName !== user.displayName) {
             user.displayName = normalizedDisplayName;
         }
-        if (!user.phone) {
-            user.phone = cleanPhone;
+        
+        // Update user profile with all newly submitted information
+        user.phone = cleanPhone;
+        
+        if (bio && String(bio).trim()) {
+            user.bio = String(bio).trim();
+        }
+        
+        const nameParts = String(fullName || "").trim().split(" ");
+        if (nameParts.length > 0 && nameParts[0]) {
+            user.firstName = nameParts[0];
+            user.lastName = nameParts.slice(1).join(" ");
+        }
+
+        if (street && city && state && pincode) {
+            const newAddress = {
+                type: "home",
+                fullName: String(fullName || user.displayName || user.username).trim(),
+                phone: cleanPhone,
+                street: String(street).trim(),
+                city: String(city).trim(),
+                state: String(state).trim(),
+                pincode: String(pincode).trim(),
+                country: String(country || "India").trim(),
+                isDefault: user.addresses.length === 0
+            };
+            
+            const defaultAddressIndex = user.addresses.findIndex(a => a.isDefault);
+            if (defaultAddressIndex >= 0) {
+                // Update existing default address
+                user.addresses[defaultAddressIndex].street = newAddress.street;
+                user.addresses[defaultAddressIndex].city = newAddress.city;
+                user.addresses[defaultAddressIndex].state = newAddress.state;
+                user.addresses[defaultAddressIndex].pincode = newAddress.pincode;
+                user.addresses[defaultAddressIndex].country = newAddress.country;
+                user.addresses[defaultAddressIndex].phone = newAddress.phone;
+                user.addresses[defaultAddressIndex].fullName = newAddress.fullName;
+            } else {
+                user.addresses.push(newAddress);
+            }
+        }
+
+        if (profilePicture?.url) {
+            user.avatar = profilePicture.url;
         }
         user.artistRequest.status = "pending";
         user.artistRequest.requestedAt = new Date();
