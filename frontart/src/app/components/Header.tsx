@@ -66,7 +66,7 @@ export function Header() {
 
   return (
     <motion.header
-      className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md transition-all duration-500 border-b border-gray-100 ${scrolled ? 'h-[70px] shadow-[0_2px_20px_rgba(0,0,0,0.08)]' : 'h-[80px] shadow-none'}`}
+      className={`sticky top-0 z-50 bg-white/95 backdrop-blur-md transition-all duration-500 border-b border-gray-100 ${scrolled ? 'h-[80px] md:h-[80px] shadow-[0_2px_20px_rgba(0,0,0,0.08)]' : 'h-[90px] md:h-[100px] shadow-none'}`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
@@ -78,14 +78,14 @@ export function Header() {
           <div className="flex items-center justify-start">
             <motion.button
               onClick={() => navigate('/')}
-              className="group relative flex items-center gap-1.5"
+              className="group relative flex items-center p-3 -ml-3 md:p-0 md:ml-0 rounded-lg"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <img
                 src={logo}
                 alt="ARTVPP"
-                className={`w-auto object-contain transition-all duration-500 group-hover:drop-shadow-[0_0_20px_rgba(255,122,24,0.4)] ${scrolled ? 'h-12' : 'h-14 md:h-16'}`}
+                className={`w-auto object-contain transition-all duration-500 group-hover:drop-shadow-[0_0_20px_rgba(255,122,24,0.4)] ${scrolled ? 'h-[60px] md:h-16' : 'h-[72px] md:h-[84px]'}`}
               />
             </motion.button>
           </div>
@@ -118,7 +118,7 @@ export function Header() {
                       }`}>
                       {item.label}
                     </span>
-                    
+
                     {/* Active Underline Indicator */}
                     {(isActive(item.path) || activeDropdown === item.value) && (
                       <motion.div
@@ -200,7 +200,7 @@ export function Header() {
 
             {/* Desktop Search */}
             <form onSubmit={handleSearch} className="w-full max-w-sm">
-              <motion.div 
+              <motion.div
                 className="relative"
                 whileHover={{ scale: 1.01 }}
               >
@@ -222,7 +222,7 @@ export function Header() {
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <motion.button 
+                    <motion.button
                       whileHover={{ y: -1 }}
                       className="hover:text-slate-900 text-slate-700 transition-colors uppercase flex items-center gap-2 whitespace-nowrap"
                     >
@@ -270,16 +270,16 @@ export function Header() {
                 </>
               )}
 
-              <motion.button 
+              <motion.button
                 whileHover={{ scale: 1.1, rotate: -5 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => navigate('/cart')} 
+                onClick={() => navigate('/cart')}
                 className="flex items-center gap-2 hover:text-[#b30452] text-slate-700 transition-colors uppercase group whitespace-nowrap p-1"
               >
                 <div className="relative">
                   <ShoppingCart className="w-5 h-5 text-slate-700 group-hover:text-[#b30452] transition-colors" />
                   {cartCount > 0 && (
-                    <motion.span 
+                    <motion.span
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       className="absolute -top-2 -right-2 bg-[#b30452] text-white text-[9px] w-3.5 h-3.5 flex items-center justify-center rounded-full font-bold shadow-md border border-white"
@@ -295,8 +295,7 @@ export function Header() {
             {/* Mobile Menu Button - Shown only on small screens */}
             <Button
               variant="ghost"
-              size="sm"
-              className="md:hidden"
+              className="md:hidden w-16 h-16 p-0 -mr-2 flex items-center justify-center rounded-lg hover:bg-gray-100/50"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               <AnimatePresence mode="wait">
@@ -308,7 +307,7 @@ export function Header() {
                     exit={{ rotate: 90, opacity: 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <X className="w-6 h-6" />
+                    <X size={48} strokeWidth={2.5} className="text-slate-900" />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -318,7 +317,7 @@ export function Header() {
                     exit={{ rotate: -90, opacity: 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <Menu className="w-6 h-6" />
+                    <Menu size={48} strokeWidth={2.5} className="text-slate-900" />
                   </motion.div>
                 )}
               </AnimatePresence>
