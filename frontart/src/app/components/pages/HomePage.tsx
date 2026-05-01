@@ -113,7 +113,7 @@ export function HomePage() {
     if (!artist) {
       artist = mockFeaturedArtists.find(a => a.id === artistId);
     }
-    
+
     if (!artist) return;
 
     setSelectedArtist(artist);
@@ -122,7 +122,7 @@ export function HomePage() {
 
     try {
       let finalArtistId = artist.artistId;
-      
+
       // If no linked account ID, try to find one by name search (proactive linking)
       if (!finalArtistId && artist.name) {
         const searchRes = await getProducts({ search: `"${artist.name.trim()}"`, limit: 1 });
@@ -140,7 +140,7 @@ export function HomePage() {
           return;
         }
       }
-      
+
       // Step 2: Final Fallback - Search purely by name string using the new robust backend filter
       const nameSearchRes = await getProducts({ artistName: artist.name.trim(), limit: 12 });
       if (nameSearchRes.success && nameSearchRes.data?.products) {
@@ -192,18 +192,31 @@ export function HomePage() {
 
 
               {/* Main Heading improved visibility and responsiveness */}
-              <motion.div variants={fadeIn} className="mb-2 w-full">
-                <h1 className="text-3xl sm:text-5xl lg:text-[72px] font-bold text-white tracking-tight leading-[1.2] lg:leading-[1.1] drop-shadow-lg" style={{ fontFamily: "'Playfair Display', serif" }}>
+              <motion.div variants={fadeIn} className="mb-2 sm:mb-4 w-full flex justify-center">
+                <h1 className="text-3xl sm:text-5xl lg:text-[64px] font-medium text-white leading-[1.2] lg:leading-[1.1] drop-shadow-lg inline-block text-center tracking-wider" style={{ fontFamily: "'Playfair Display', serif" }}>
                   Your ART deserves
                 </h1>
               </motion.div>
 
-              <motion.div variants={fadeIn} className="mb-6 w-full">
-                <h2 className="text-3xl sm:text-5xl lg:text-[72px] font-bold text-white tracking-tight leading-[1.2] lg:leading-[1.1] drop-shadow-lg" style={{ fontFamily: "'Playfair Display', serif" }}>
-                  Freedom Upload Free on
-                </h2>
+              <motion.div variants={fadeIn} className="mb-2 lg:mb-3 w-full flex flex-col items-center">
+                <div className="flex items-center justify-center gap-3 sm:gap-4 relative">
+                  <h2 className="text-5xl sm:text-7xl lg:text-[96px] text-white leading-[1] drop-shadow-lg italic mb-2 tracking-wide" style={{ fontFamily: "'Playfair Display', serif" }}>
+                    freedom
+                  </h2>
+                  <div className="relative inline-block transform translate-y-4 lg:translate-y-6 rotate-[15deg] z-10 w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 -ml-2 drop-shadow-xl hover:rotate-[20deg] transition-transform duration-300">
+                    <svg viewBox="0 0 100 100" className="w-full h-full fill-[#FFD700]" style={{ filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.3))' }}>
+                      <path d="M50 0 L58 13 L73 7 L78 21 L93 22 L90 37 L100 48 L90 58 L91 74 L77 78 L72 92 L59 86 L48 98 L37 87 L23 91 L20 76 L6 73 L11 58 L0 47 L12 38 L8 23 L22 21 L28 7 L40 13 Z" />
+                    </svg>
+                    <span className="absolute inset-0 flex items-center justify-center font-black text-black text-[12px] sm:text-[14px] lg:text-[16px] tracking-wider uppercase rotate-[-15deg] mt-0 font-sans">
+                      FREE
+                    </span>
+                  </div>
+                </div>
+                <h3 className="text-lg sm:text-xl lg:text-[22px] font-medium text-white tracking-[0.2em] lg:tracking-[0.4em] uppercase mt-5 lg:mt-6 ml-2 drop-shadow-md" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  UPLOAD NOW ON
+                </h3>
               </motion.div>
-              <motion.div variants={fadeIn} className="mb-6 px-4 text-center">
+              <motion.div variants={fadeIn} className="mb-6 px-4 text-center -mt-2 lg:-mt-4">
                 <span
                   className="text-5xl sm:text-8xl lg:text-[96px] font-extrabold tracking-tight inline-block px-4"
                   style={{
