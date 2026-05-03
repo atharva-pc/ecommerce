@@ -1314,11 +1314,11 @@ const createStudentPendingActions = async ({ studentArtworkDetails, userId, appl
                 authorName: isBook ? artwork.authorName : null,
                 studentSubmissionMeta: {
                     applicationId,
-                    artworkIndex,
-                    size: artwork.size,
-                    medium: artwork.medium,
-                    categoryMeta: artwork.categoryMeta || null
-                }
+                    artworkIndex
+                },
+                size: artwork.size,
+                medium: artwork.medium,
+                categoryMeta: artwork.categoryMeta || {}
             };
 
             if (isBook && artwork.pdfFile) {

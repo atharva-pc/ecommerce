@@ -21,10 +21,14 @@ type ProductDetails = {
   numReviews?: number;
   medium?: string;
   material?: string;
-  dimensions?: string;
+  size?: string;
+  dimensions?: string | { length?: number; width?: number; height?: number; unit?: string };
   yearCreated?: number;
+  authorName?: string;
+  productType?: 'artwork' | 'book';
+  categoryMeta?: Record<string, any>;
   artist?: { username?: string; avatar?: { url: string }; _id?: string };
-  images?: { url: string }[];
+  images?: { url: string; publicId: string }[];
 };
 
 export function ProductDetailPage() {
@@ -135,13 +139,17 @@ export function ProductDetailPage() {
   const inStock = stockCount > 0;
 
   const formatDetailValue = (val: any) => {
-    if (!val) return '—';
+    if (!val) return null;
     if (typeof val === 'object') {
-      if (val.width && val.height) {
-        return `${val.width} x ${val.height} ${val.unit || ''}`;
+      if (val.length || val.width || val.height) {
+        const parts = [];
+        if (val.length) parts.push(val.length);
+        if (val.width) parts.push(val.width);
+        if (val.height) parts.push(val.height);
+        return `${parts.join(' x ')} ${val.unit || ''}`;
       }
       if (val.name) return String(val.name);
-      return '—';
+      return null;
     }
     return String(val);
   };
@@ -271,15 +279,21 @@ export function ProductDetailPage() {
             </div>
 
             <div className="border border-gray-100 rounded-[10px] p-5 bg-gray-50">
-              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Artwork Details</h3>
+              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">
+                {product.productType === 'book' ? 'Book Details' : 'Artwork Details'}
+              </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm shrink-0">
-                    <User className="w-4 h-4 text-[#b30452]" />
+                    {product.productType === 'book' ? <Tag className="w-4 h-4 text-[#b30452]" /> : <User className="w-4 h-4 text-[#b30452]" />}
                   </div>
                   <div>
-                    <div className="text-[11px] text-gray-400 uppercase tracking-wide mb-0.5">Artist</div>
-                    <div className="font-medium text-gray-900 text-sm">{String(product.artist?.username || 'Unknown')}</div>
+                    <div className="text-[11px] text-gray-400 uppercase tracking-wide mb-0.5">
+                      {product.productType === 'book' ? 'Author' : 'Artist'}
+                    </div>
+                    <div className="font-medium text-gray-900 text-sm">
+                      {product.productType === 'book' ? (product.authorName || 'Unknown') : (product.artist?.username || 'Unknown')}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -291,43 +305,70 @@ export function ProductDetailPage() {
                     <div className="font-medium text-gray-900 text-sm capitalize">{formatDetailValue(product.category)}</div>
                   </div>
                 </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm shrink-0">
-                    <Paintbrush className="w-4 h-4 text-[#b30452]" />
-                  </div>
-                  <div>
-                    <div className="text-[11px] text-gray-400 uppercase tracking-wide mb-0.5">Medium</div>
-                    <div className="font-medium text-gray-900 text-sm">{formatDetailValue(product.medium) || 'Mixed Media'}</div>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm shrink-0">
-                    <Package className="w-4 h-4 text-[#b30452]" />
-                  </div>
-                  <div>
-                    <div className="text-[11px] text-gray-400 uppercase tracking-wide mb-0.5">Material</div>
-                    <div className="font-medium text-gray-900 text-sm">{formatDetailValue(product.material) || 'Canvas'}</div>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm shrink-0">
-                    <Ruler className="w-4 h-4 text-[#b30452]" />
-                  </div>
-                  <div>
-                    <div className="text-[11px] text-gray-400 uppercase tracking-wide mb-0.5">Size</div>
-                    <div className="font-medium text-gray-900 text-sm">{formatDetailValue(product.dimensions) || 'Standard'}</div>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm shrink-0">
-                    <Calendar className="w-4 h-4 text-[#b30452]" />
-                  </div>
-                  <div>
-                    <div className="text-[11px] text-gray-400 uppercase tracking-wide mb-0.5">Year</div>
-                    <div className="font-medium text-gray-900 text-sm">{formatDetailValue(product.yearCreated) || new Date().getFullYear()}</div>
-                  </div>
-                </div>
+                {product.productType !== 'book' && (
+                  <>
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm shrink-0">
+                        <Paintbrush className="w-4 h-4 text-[#b30452]" />
+                      </div>
+                      <div>
+                        <div className="text-[11px] text-gray-400 uppercase tracking-wide mb-0.5">Medium</div>
+                        <div className="font-medium text-gray-900 text-sm">{formatDetailValue(product.medium) || 'Mixed Media'}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm shrink-0">
+                        <Package className="w-4 h-4 text-[#b30452]" />
+                      </div>
+                      <div>
+                        <div className="text-[11px] text-gray-400 uppercase tracking-wide mb-0.5">Material</div>
+                        <div className="font-medium text-gray-900 text-sm">{formatDetailValue(product.material) || 'Canvas'}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm shrink-0">
+                        <Ruler className="w-4 h-4 text-[#b30452]" />
+                      </div>
+                      <div>
+                        <div className="text-[11px] text-gray-400 uppercase tracking-wide mb-0.5">Size</div>
+                        <div className="font-medium text-gray-900 text-sm">{formatDetailValue(product.size || product.dimensions) || 'Standard'}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm shrink-0">
+                        <Calendar className="w-4 h-4 text-[#b30452]" />
+                      </div>
+                      <div>
+                        <div className="text-[11px] text-gray-400 uppercase tracking-wide mb-0.5">Year</div>
+                        <div className="font-medium text-gray-900 text-sm">{formatDetailValue(product.yearCreated) || new Date().getFullYear()}</div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
+              
+              {product.categoryMeta && Object.keys(product.categoryMeta).length > 0 && (
+                <div className="mt-8 pt-6 border-t border-gray-100">
+                  <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-4">Additional Details</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                    {Object.entries(product.categoryMeta).map(([key, value]) => {
+                      if (!value || typeof value === 'object') return null;
+                      
+                      // Convert camelCase to Title Case
+                      const label = key
+                        .replace(/([A-Z])/g, ' $1')
+                        .replace(/^./, (str) => str.toUpperCase());
+                        
+                      return (
+                        <div key={key} className="flex justify-between items-center py-1.5 border-b border-gray-50 last:border-0">
+                          <span className="text-xs text-gray-500">{label}</span>
+                          <span className="text-sm font-medium text-gray-900">{String(value)}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

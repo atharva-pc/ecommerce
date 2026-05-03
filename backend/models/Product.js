@@ -90,12 +90,39 @@ const productSchema = new mongoose.Schema(
             index: true
         },
 
+        // Artwork-specific fields
+        medium: {
+            type: String,
+            trim: true,
+            default: null
+        },
+        material: {
+            type: String,
+            trim: true,
+            default: null
+        },
+        size: {
+            type: String, // String format like "23 x 45"
+            trim: true,
+            default: null
+        },
+        yearCreated: {
+            type: Number,
+            default: () => new Date().getFullYear()
+        },
+
         // Book-specific: author name
         authorName: {
             type: String,
             trim: true,
             maxlength: [120, "Author name cannot exceed 120 characters"],
             default: null
+        },
+
+        // Category specific metadata
+        categoryMeta: {
+            type: mongoose.Schema.Types.Mixed,
+            default: {}
         },
 
         // Tags for search

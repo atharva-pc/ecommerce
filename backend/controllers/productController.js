@@ -1,4 +1,6 @@
+import mongoose from "mongoose";
 import { Product } from "../models/Product.js";
+import { User } from "../models/User.js";
 import { PendingAction } from "../models/PendingAction.js";
 import { Category } from "../models/Category.js";
 import { Content } from "../models/Content.js";
@@ -262,7 +264,8 @@ export const requestCreateProduct = async (req, res) => {
         const artistId = req.userId;
         const {
             title, displayName, description, price, comparePrice, category,
-            tags, stock, isDigital, dimensions, weight, artistNote
+            tags, stock, isDigital, dimensions, weight, artistNote,
+            medium, material, size, yearCreated, categoryMeta, authorName
         } = req.body;
         const normalizedCategory = normalizeProductCategory(category);
         const normalizedDisplayName = normalizeDisplayName(displayName, title);
@@ -292,8 +295,14 @@ export const requestCreateProduct = async (req, res) => {
                 tags: parsedTags,
                 stock: Number(stock) || 1,
                 isDigital: isDigital === "true" || isDigital === true,
-                dimensions: dimensions ? JSON.parse(dimensions) : undefined,
-                weight: weight ? JSON.parse(weight) : undefined
+                dimensions: dimensions ? (typeof dimensions === 'string' ? JSON.parse(dimensions) : dimensions) : undefined,
+                weight: weight ? (typeof weight === 'string' ? JSON.parse(weight) : weight) : undefined,
+                medium,
+                material,
+                size,
+                yearCreated: Number(yearCreated) || undefined,
+                categoryMeta: categoryMeta ? (typeof categoryMeta === 'string' ? JSON.parse(categoryMeta) : categoryMeta) : undefined,
+                authorName,
             },
             images: req.uploadedImages,
             artistNote: artistNote || null
@@ -351,7 +360,8 @@ export const requestEditProduct = async (req, res) => {
 
         const {
             title, displayName, description, price, comparePrice, category,
-            tags, stock, isDigital, dimensions, weight, artistNote
+            tags, stock, isDigital, dimensions, weight, artistNote,
+            medium, material, size, yearCreated, categoryMeta, authorName
         } = req.body;
 
         const changes = {};
@@ -377,8 +387,16 @@ export const requestEditProduct = async (req, res) => {
         }
         if (stock !== undefined && Number(stock) !== product.stock) changes.stock = Number(stock);
         if (isDigital !== undefined) changes.isDigital = isDigital === "true" || isDigital === true;
-        if (dimensions) changes.dimensions = JSON.parse(dimensions);
-        if (weight) changes.weight = JSON.parse(weight);
+        if (dimensions) changes.dimensions = typeof dimensions === 'string' ? JSON.parse(dimensions) : dimensions;
+        if (weight) changes.weight = typeof weight === 'string' ? JSON.parse(weight) : weight;
+        if (medium !== undefined) changes.medium = medium;
+        if (material !== undefined) changes.material = material;
+        if (size !== undefined) changes.size = size;
+        if (yearCreated !== undefined) changes.yearCreated = Number(yearCreated);
+        if (categoryMeta !== undefined) {
+            changes.categoryMeta = typeof categoryMeta === 'string' ? JSON.parse(categoryMeta) : categoryMeta;
+        }
+        if (authorName !== undefined) changes.authorName = authorName;
 
         if (Object.keys(changes).length === 0 && (!req.uploadedImages || req.uploadedImages.length === 0)) {
             return res.status(400).json({
@@ -656,7 +674,8 @@ export const adminCreateProduct = async (req, res) => {
         const adminId = req.userId;
         const {
             title, displayName, description, price, comparePrice, category,
-            tags, stock, isDigital, dimensions, weight, artistId
+            tags, stock, isDigital, dimensions, weight, artistId,
+            medium, material, size, yearCreated, categoryMeta, authorName
         } = req.body;
         const normalizedCategory = normalizeProductCategory(category);
         const normalizedDisplayName = normalizeDisplayName(displayName, title);
@@ -684,8 +703,14 @@ export const adminCreateProduct = async (req, res) => {
             tags: parsedTags,
             stock: Number(stock) || 1,
             isDigital: isDigital === "true" || isDigital === true,
-            dimensions: dimensions ? JSON.parse(dimensions) : undefined,
-            weight: weight ? JSON.parse(weight) : undefined,
+            dimensions: dimensions ? (typeof dimensions === 'string' ? JSON.parse(dimensions) : dimensions) : undefined,
+            weight: weight ? (typeof weight === 'string' ? JSON.parse(weight) : weight) : undefined,
+            medium,
+            material,
+            size,
+            yearCreated: Number(yearCreated) || undefined,
+            categoryMeta: categoryMeta ? (typeof categoryMeta === 'string' ? JSON.parse(categoryMeta) : categoryMeta) : undefined,
+            authorName,
             status: "active",
             createdByAdmin: true,
             verification: {
@@ -998,7 +1023,8 @@ export const adminEditProduct = async (req, res) => {
 
         const {
             title, displayName, description, price, comparePrice, category,
-            tags, stock, isDigital, dimensions, weight, status
+            tags, stock, isDigital, dimensions, weight, status,
+            medium, material, size, yearCreated, categoryMeta, authorName
         } = req.body;
 
         if (title) product.title = title;
@@ -1016,9 +1042,17 @@ export const adminEditProduct = async (req, res) => {
         }
         if (stock !== undefined) product.stock = Number(stock);
         if (isDigital !== undefined) product.isDigital = isDigital === "true" || isDigital === true;
-        if (dimensions) product.dimensions = JSON.parse(dimensions);
-        if (weight) product.weight = JSON.parse(weight);
+        if (dimensions) product.dimensions = typeof dimensions === 'string' ? JSON.parse(dimensions) : dimensions;
+        if (weight) product.weight = typeof weight === 'string' ? JSON.parse(weight) : weight;
         if (status) product.status = status;
+        if (medium !== undefined) product.medium = medium;
+        if (material !== undefined) product.material = material;
+        if (size !== undefined) product.size = size;
+        if (yearCreated !== undefined) product.yearCreated = Number(yearCreated);
+        if (categoryMeta !== undefined) {
+            product.categoryMeta = typeof categoryMeta === 'string' ? JSON.parse(categoryMeta) : categoryMeta;
+        }
+        if (authorName !== undefined) product.authorName = authorName;
 
         if (req.uploadedImages && req.uploadedImages.length > 0) {
             product.images.push(...req.uploadedImages);
