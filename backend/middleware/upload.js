@@ -250,21 +250,69 @@ export const uploadArtistApplicationFiles = (req, res, next) => {
     });
 };
 
-// ============================================
-// STUDENT SUBMISSION UPLOAD
-// ============================================
-
 /**
- * Middleware to upload student form profile + artwork images
+ * Middleware to upload student form profile + artwork images + optional book PDFs
  *
  * Fields:
- * - profilePicture: single file (required)
+ * - profilePicture: single file (required for new accounts)
  * - artworkImages: 1..60 files (required)
+ * - bookPdfs: 0..10 PDF files (optional, for book submissions)
  */
+
+const studentSubmissionUpload = multer({
+    storage: memoryStorage,
+    limits: { fileSize: 20 * 1024 * 1024 }, // 20MB to allow PDFs
+    fileFilter: (req, file, cb) => {
+        const imageTypes = ["image/jpeg", "image/png", "image/webp"];
+        const pdfType = "application/pdf";
+
+        if (file.fieldname === "bookPdfs") {
+            if (file.mimetype === pdfType) {
+                cb(null, true);
+            } else {
+                cb(new Error("Only PDF files are allowed for book uploads"), false);
+            }
+        } else {
+            if (imageTypes.includes(file.mimetype)) {
+                cb(null, true);
+            } else {
+                cb(new Error("Only JPG, PNG, and WebP images are allowed"), false);
+            }
+        }
+    }
+});
+
+/**
+ * Upload buffer to Cloudinary as raw file (for PDFs)
+ */
+const uploadPdfToCloudinary = (buffer, folder, originalName) => {
+    return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+            {
+                folder,
+                resource_type: 'raw',
+                public_id: `${Date.now()}-${originalName.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+            },
+            (error, result) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve({
+                        url: result.secure_url,
+                        publicId: result.public_id
+                    });
+                }
+            }
+        );
+        uploadStream.end(buffer);
+    });
+};
+
 export const uploadStudentSubmissionFiles = (req, res, next) => {
-    const upload = memoryUpload.fields([
+    const upload = studentSubmissionUpload.fields([
         { name: "profilePicture", maxCount: 1 },
-        { name: "artworkImages", maxCount: 60 }
+        { name: "artworkImages", maxCount: 60 },
+        { name: "bookPdfs", maxCount: 10 }
     ]);
 
     upload(req, res, async (err) => {
@@ -272,7 +320,7 @@ export const uploadStudentSubmissionFiles = (req, res, next) => {
             if (err.code === "LIMIT_FILE_SIZE") {
                 return res.status(400).json({
                     success: false,
-                    message: "File size limit exceeded. Max 10MB per file."
+                    message: "File size limit exceeded. Max 10MB per image, 20MB per PDF."
                 });
             }
 
@@ -284,13 +332,7 @@ export const uploadStudentSubmissionFiles = (req, res, next) => {
 
         const profilePicFile = req.files?.profilePicture?.[0];
         const artworkFiles = req.files?.artworkImages || [];
-
-        if (!profilePicFile) {
-            return res.status(400).json({
-                success: false,
-                message: "Profile picture is required"
-            });
-        }
+        const pdfFiles = req.files?.bookPdfs || [];
 
         if (artworkFiles.length < 1) {
             return res.status(400).json({
@@ -307,19 +349,37 @@ export const uploadStudentSubmissionFiles = (req, res, next) => {
         }
 
         try {
-            const profilePicResult = await uploadBufferToCloudinary(
-                profilePicFile.buffer,
-                "artvpp/student-submissions/profiles"
-            );
+            let profilePicResult = null;
+            if (profilePicFile) {
+                profilePicResult = await uploadBufferToCloudinary(
+                    profilePicFile.buffer,
+                    "artvpp/student-submissions/profiles"
+                );
+            }
 
             const artworkResults = await uploadBuffersToCloudinary(
                 artworkFiles,
                 "artvpp/student-submissions/artworks"
             );
 
+            // Upload PDFs if any
+            let pdfResults = [];
+            if (pdfFiles.length > 0) {
+                pdfResults = await Promise.all(
+                    pdfFiles.map((file) =>
+                        uploadPdfToCloudinary(
+                            file.buffer,
+                            "artvpp/student-submissions/books",
+                            file.originalname
+                        )
+                    )
+                );
+            }
+
             req.uploadedFiles = {
                 profilePicture: profilePicResult,
-                artworkImages: artworkResults
+                artworkImages: artworkResults,
+                bookPdfs: pdfResults
             };
 
             next();
@@ -327,7 +387,7 @@ export const uploadStudentSubmissionFiles = (req, res, next) => {
             await cleanupUploadedFiles(req.uploadedFiles || {}).catch(console.error);
             return res.status(500).json({
                 success: false,
-                message: "Failed to upload images to cloud storage. Please try again."
+                message: "Failed to upload files to cloud storage. Please try again."
             });
         }
     });
@@ -359,7 +419,16 @@ export const cleanupUploadedFiles = async (files) => {
 
         if (publicIds.length > 0) {
             await deleteMultipleImages(publicIds);
-            console.log(`Cleaned up ${publicIds.length} uploaded files`);
+            console.log(`Cleaned up ${publicIds.length} uploaded image files`);
+        }
+
+        // Clean up PDF files separately (they use resource_type: raw)
+        if (files.bookPdfs && Array.isArray(files.bookPdfs)) {
+            const pdfIds = files.bookPdfs.map(p => p.publicId).filter(Boolean);
+            if (pdfIds.length > 0) {
+                await cloudinary.api.delete_resources(pdfIds, { resource_type: 'raw' });
+                console.log(`Cleaned up ${pdfIds.length} uploaded PDF files`);
+            }
         }
     } catch (error) {
         console.error("Cleanup error:", error);

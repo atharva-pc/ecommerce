@@ -6,7 +6,7 @@ import { Textarea } from '../ui/textarea';
 import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Checkbox } from '../ui/checkbox';
-import { Loader2, Plus, Trash2, Upload, CheckCircle2, User, Mail, Phone, Lock, Image as ImageIcon, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Plus, Trash2, Upload, CheckCircle2, User, Mail, Phone, Lock, Image as ImageIcon, Eye, EyeOff, BookOpen } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -35,7 +35,8 @@ const CATEGORY_OPTIONS = [
     'Photographs',
     'Prints',
     'Handicrafts',
-    'Sketches'
+    'Sketches',
+    'Books'
 ];
 
 type CategoryOption = typeof CATEGORY_OPTIONS[number];
@@ -51,6 +52,9 @@ type ArtworkDraft = {
     previews: string[];
     coverIndex: number;
     categoryMeta: Record<string, string | boolean>;
+    authorName: string;
+    pdfFile: File | null;
+    pdfPreview: string;
 };
 
 const LICENSE_OPTIONS = ['Personal Use', 'Commercial Use', 'Editorial Use', 'Exclusive Rights'];
@@ -116,6 +120,9 @@ const validateCategoryMeta = (artwork: ArtworkDraft) => {
         case 'Handicrafts':
             return !!m.craftType && !!m.materialsUsed && !!m.dimensions3d && !!m.weight && isYes(m.handmadeCertified) && !!m.quantityAvailable;
 
+        case 'Books':
+            return true; // No category-specific meta for books
+
         default:
             return true;
     }
@@ -131,7 +138,10 @@ const createArtworkDraft = (): ArtworkDraft => ({
     files: [],
     previews: [],
     coverIndex: 0,
-    categoryMeta: {}
+    categoryMeta: {},
+    authorName: '',
+    pdfFile: null,
+    pdfPreview: ''
 });
 
 const renderCategorySpecificFields = (
@@ -375,8 +385,7 @@ const getSubmitBlockers = (
         blockers.push('Please log in to submit with your existing account');
     }
 
-    // Profile picture is only required for new account creation
-    if (!profilePicture && !isAuthenticated) blockers.push('Profile picture is required');
+    // Profile picture is optional for all users
     if (!form.displayName.trim()) blockers.push('Display name is required');
 
     if (requiresAccountCreation) {
@@ -422,10 +431,12 @@ const getSubmitBlockers = (
 
     artworks.forEach((a, idx) => {
         const label = `Artwork #${idx + 1}`;
+        const isBook = a.category === 'Books';
         if (!a.title.trim()) blockers.push(`${label}: title is required`);
         if (!a.price.trim() || Number(a.price) <= 0) blockers.push(`${label}: valid price is required`);
-        if (!a.size.trim()) blockers.push(`${label}: size is required`);
-        if (!a.medium.trim()) blockers.push(`${label}: medium/material is required`);
+        if (!isBook && !a.size.trim()) blockers.push(`${label}: size is required`);
+        if (!isBook && !a.medium.trim()) blockers.push(`${label}: medium/material is required`);
+        if (isBook && !a.authorName.trim()) blockers.push(`${label}: author name is required`);
         if (a.files.length < 1) blockers.push(`${label}: at least 1 image is required`);
         if (!validateCategoryMeta(a)) blockers.push(`${label}: complete category-specific details`);
     });
@@ -515,8 +526,11 @@ export function StudentSubmissionPage() {
                     ...createArtworkDraft(),
                     ...a,
                     categoryMeta: a?.categoryMeta || {},
+                    authorName: a?.authorName || '',
                     files: [],
-                    previews: []
+                    previews: [],
+                    pdfFile: null,
+                    pdfPreview: ''
                 })));
             }
         } catch {
@@ -540,7 +554,8 @@ export function StudentSubmissionPage() {
                     medium: a.medium,
                     description: a.description,
                     coverIndex: a.coverIndex,
-                    categoryMeta: a.categoryMeta || {}
+                    categoryMeta: a.categoryMeta || {},
+                    authorName: a.authorName || ''
                 }))
             };
             localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(snapshot));
@@ -572,6 +587,9 @@ export function StudentSubmissionPage() {
                         pincode: profileData.pincode || prev.pincode,
                         country: profileData.country || prev.country || 'India'
                     }));
+                    if (profileData.avatar && !profilePicture) {
+                        setProfilePreview(profileData.avatar);
+                    }
                 }
             })
             .catch((error) => {
@@ -720,11 +738,7 @@ export function StudentSubmissionPage() {
             return;
         }
 
-        // Profile picture is only required for new account creation, not for logged-in users
-        if (!profilePicture && !user) {
-            toast.error('Profile picture is required');
-            return;
-        }
+        // Profile picture is optional — backend handles fallback
 
         setIsSubmitting(true);
 
@@ -754,25 +768,48 @@ export function StudentSubmissionPage() {
                 }
             }
 
+            // Append book PDFs separately
+            let globalPdfIndex = 0;
+            const pdfIndexMap: number[] = [];
+            for (const item of artworks) {
+                if (item.category === 'Books' && item.pdfFile) {
+                    payload.append('bookPdfs', item.pdfFile, item.pdfFile.name);
+                    pdfIndexMap.push(globalPdfIndex);
+                    globalPdfIndex += 1;
+                } else {
+                    pdfIndexMap.push(-1);
+                }
+            }
+
             // Build global image indexes in the same order as appended files.
             let globalImageIndex = 0;
-            const normalizedMeta = artworks.map((item) => {
+            const normalizedMeta = artworks.map((item, artworkIdx) => {
+                const isBook = item.category === 'Books';
                 const imageIndexes = item.files.map(() => {
                     const value = globalImageIndex;
                     globalImageIndex += 1;
                     return value;
                 });
-                return {
+                const meta: Record<string, unknown> = {
                     category: item.category,
                     title: item.title,
                     price: Number(item.price),
-                    size: item.size,
-                    medium: item.medium,
+                    size: isBook ? '' : item.size,
+                    medium: isBook ? '' : item.medium,
                     description: item.description,
                     primaryImageIndex: item.coverIndex,
                     imageIndexes,
                     categoryMeta: sanitizeMeta(item.categoryMeta || {})
                 };
+
+                if (isBook) {
+                    meta.authorName = item.authorName;
+                    if (pdfIndexMap[artworkIdx] >= 0) {
+                        meta.pdfIndex = pdfIndexMap[artworkIdx];
+                    }
+                }
+
+                return meta;
             });
 
             payload.set('artworksMeta', JSON.stringify(normalizedMeta));
@@ -1150,15 +1187,18 @@ export function StudentSubmissionPage() {
                                 <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center">
                                     <ImageIcon className="w-5 h-5 text-[#a73f2b]" />
                                 </div>
-                                <h3 className="text-2xl font-bold text-gray-900">3. Artwork Submission</h3>
+                                <h3 className="text-2xl font-bold text-gray-900">3. Artwork / Book Submission</h3>
                             </div>
-                            <p className="text-sm text-gray-500">Each artwork needs 1-6 images and one cover image.</p>
+                            <p className="text-sm text-gray-500">Submit artworks or books. Each item needs at least 1 cover image. Select &quot;Books&quot; in the category to upload a book.</p>
 
                             <div className="space-y-8">
                                 {artworks.map((artwork, idx) => (
                                     <div key={idx} className="border border-gray-200 rounded-2xl p-6 md:p-8 bg-white shadow-sm relative group transition-all hover:border-[#a73f2b]/30 hover:shadow-md">
                                         <div className="flex justify-between items-center mb-6">
-                                            <h4 className="text-lg font-bold text-gray-900">Artwork #{idx + 1}</h4>
+                                            <h4 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                                {artwork.category === 'Books' ? <BookOpen className="w-5 h-5 text-[#a73f2b]" /> : null}
+                                                {artwork.category === 'Books' ? `Book #${idx + 1}` : `Artwork #${idx + 1}`}
+                                            </h4>
                                             {artworks.length > 1 && (
                                                 <Button type="button" variant="ghost" size="sm" onClick={() => setArtworks((prev) => prev.filter((_, i) => i !== idx))} className="text-red-500 hover:text-red-700 hover:bg-red-50">
                                                     <Trash2 className="w-4 h-4 mr-1" /> Remove
@@ -1169,43 +1209,104 @@ export function StudentSubmissionPage() {
                                         <div className="grid md:grid-cols-2 gap-6 mb-6">
                                             <div className="space-y-2">
                                                 <Label className="text-sm font-medium text-gray-700">Category *</Label>
-                                                <Select value={artwork.category} onValueChange={(value) => updateArtwork(idx, { category: value as CategoryOption, categoryMeta: {} })}>
+                                                <Select value={artwork.category} onValueChange={(value) => updateArtwork(idx, { category: value as CategoryOption, categoryMeta: {}, authorName: '', pdfFile: null, pdfPreview: '' })}>
                                                     <SelectTrigger className="h-11 rounded-lg border-gray-200 focus:ring-[#a73f2b]"><SelectValue /></SelectTrigger>
                                                     <SelectContent className="rounded-xl border-gray-100 shadow-xl">
                                                         {CATEGORY_OPTIONS.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
-                                            <div className="space-y-2"><Label className="text-sm font-medium text-gray-700">Title *</Label><Input value={artwork.title} onChange={(e) => updateArtwork(idx, { title: e.target.value })} className="h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b]" placeholder="Artwork title" required /></div>
+                                            <div className="space-y-2"><Label className="text-sm font-medium text-gray-700">{artwork.category === 'Books' ? 'Book Title *' : 'Title *'}</Label><Input value={artwork.title} onChange={(e) => updateArtwork(idx, { title: e.target.value })} className="h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b]" placeholder={artwork.category === 'Books' ? 'e.g. The Art of Color Theory' : 'Artwork title'} required /></div>
                                             <div className="space-y-2"><Label className="text-sm font-medium text-gray-700">Price (INR) *</Label><Input type="number" min="1" step="0.01" value={artwork.price} onChange={(e) => updateArtwork(idx, { price: e.target.value })} className="h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b]" placeholder="e.g. 5000" required /></div>
-                                            <div className="space-y-2"><Label className="text-sm font-medium text-gray-700">Size (W x H) *</Label><Input value={artwork.size} onChange={(e) => updateArtwork(idx, { size: e.target.value })} className="h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b]" placeholder="e.g. 24x36 inches" required /></div>
-                                            <div className="space-y-2 md:col-span-2"><Label className="text-sm font-medium text-gray-700">Medium / Material *</Label><Input value={artwork.medium} onChange={(e) => updateArtwork(idx, { medium: e.target.value })} className="h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b]" placeholder="e.g. Oil on Canvas" required /></div>
+
+                                            {/* Book-specific: Author Name */}
+                                            {artwork.category === 'Books' && (
+                                                <div className="space-y-2">
+                                                    <Label className="text-sm font-medium text-gray-700">Author Name *</Label>
+                                                    <Input value={artwork.authorName} onChange={(e) => updateArtwork(idx, { authorName: e.target.value })} className="h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b]" placeholder="e.g. John Doe" required />
+                                                </div>
+                                            )}
+
+                                            {/* Artwork-specific: Size & Medium (hidden for Books) */}
+                                            {artwork.category !== 'Books' && (
+                                                <>
+                                                    <div className="space-y-2"><Label className="text-sm font-medium text-gray-700">Size (W x H) *</Label><Input value={artwork.size} onChange={(e) => updateArtwork(idx, { size: e.target.value })} className="h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b]" placeholder="e.g. 24x36 inches" required /></div>
+                                                    <div className="space-y-2 md:col-span-2"><Label className="text-sm font-medium text-gray-700">Medium / Material *</Label><Input value={artwork.medium} onChange={(e) => updateArtwork(idx, { medium: e.target.value })} className="h-11 rounded-lg border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b]" placeholder="e.g. Oil on Canvas" required /></div>
+                                                </>
+                                            )}
                                         </div>
 
                                         <div className="space-y-2 mb-6">
-                                            <Label className="text-sm font-medium text-gray-700">Description</Label>
-                                            <Textarea value={artwork.description} onChange={(e) => updateArtwork(idx, { description: e.target.value })} rows={3} className="rounded-xl border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] resize-none p-4" placeholder="Provide details about the artwork, its inspiration, and history..." />
+                                            <Label className="text-sm font-medium text-gray-700">Description {artwork.category === 'Books' ? '*' : ''}</Label>
+                                            <Textarea value={artwork.description} onChange={(e) => updateArtwork(idx, { description: e.target.value })} rows={3} className="rounded-xl border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b] resize-none p-4" placeholder={artwork.category === 'Books' ? 'Describe the book, its contents, and target audience...' : 'Provide details about the artwork, its inspiration, and history...'} />
                                         </div>
 
-                                        <div className="rounded-xl p-6 bg-gray-50 border border-gray-100 mb-6 transition-all hover:bg-gray-100/50">
-                                            <p className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-[#a73f2b]" /> Category Details</p>
-                                            {renderCategorySpecificFields(artwork, idx, updateArtworkMeta)}
-                                        </div>
+                                        {/* Category Details (hidden for Books) */}
+                                        {artwork.category !== 'Books' && (
+                                            <div className="rounded-xl p-6 bg-gray-50 border border-gray-100 mb-6 transition-all hover:bg-gray-100/50">
+                                                <p className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-[#a73f2b]" /> Category Details</p>
+                                                {renderCategorySpecificFields(artwork, idx, updateArtworkMeta)}
+                                            </div>
+                                        )}
+
+                                        {/* Book-specific: PDF Upload (optional) */}
+                                        {artwork.category === 'Books' && (
+                                            <div className="rounded-xl p-6 bg-blue-50/50 border border-blue-100 mb-6 transition-all">
+                                                <p className="text-sm font-semibold text-gray-800 mb-4 flex items-center gap-2"><BookOpen className="w-4 h-4 text-blue-600" /> Upload PDF (Optional)</p>
+                                                <div className="border-2 border-dashed border-blue-200 hover:border-blue-400 bg-white/50 hover:bg-blue-50/30 transition-all rounded-xl p-6 text-center cursor-pointer group" onClick={() => document.getElementById(`book-pdf-${idx}`)?.click()}>
+                                                    <input
+                                                        id={`book-pdf-${idx}`}
+                                                        type="file"
+                                                        accept="application/pdf"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (!file) return;
+                                                            if (file.type !== 'application/pdf') {
+                                                                toast.error('Only PDF files are allowed');
+                                                                return;
+                                                            }
+                                                            if (file.size > 20 * 1024 * 1024) {
+                                                                toast.error('PDF must be under 20MB');
+                                                                return;
+                                                            }
+                                                            updateArtwork(idx, { pdfFile: file, pdfPreview: file.name });
+                                                        }}
+                                                        className="hidden"
+                                                    />
+                                                    {artwork.pdfPreview ? (
+                                                        <div className="flex items-center justify-center gap-3">
+                                                            <BookOpen className="w-6 h-6 text-blue-600" />
+                                                            <div>
+                                                                <p className="text-sm font-medium text-gray-900">{artwork.pdfPreview}</p>
+                                                                <p className="text-xs text-gray-500">Click to replace</p>
+                                                            </div>
+                                                            <Button type="button" size="sm" variant="ghost" className="text-red-500 h-7 text-xs" onClick={(e) => { e.stopPropagation(); updateArtwork(idx, { pdfFile: null, pdfPreview: '' }); }}>Remove</Button>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <Upload className="mx-auto h-6 w-6 text-blue-400 mb-2 group-hover:text-blue-600 transition-colors" />
+                                                            <p className="text-sm font-medium text-gray-700">Upload Book PDF</p>
+                                                            <p className="text-xs text-gray-500">PDF up to 20MB</p>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
 
                                         <div className="space-y-4">
-                                            <Label className="text-sm font-medium text-gray-700">Choose Artwork Images *</Label>
+                                            <Label className="text-sm font-medium text-gray-700">{artwork.category === 'Books' ? 'Upload Book Cover *' : 'Choose Artwork Images *'}</Label>
                                             <div className="border-2 border-dashed border-gray-300 hover:border-[#a73f2b] bg-gray-50/50 hover:bg-orange-50/30 transition-all rounded-xl p-8 text-center cursor-pointer group" onClick={() => document.getElementById(`artwork-images-${idx}`)?.click()}>
                                                 <input
                                                     id={`artwork-images-${idx}`}
                                                     type="file"
-                                                    multiple
+                                                    multiple={artwork.category !== 'Books'}
                                                     accept="image/jpeg,image/png,image/webp"
                                                     onChange={(e) => onArtworkFilesChange(idx, e.target.files)}
                                                     className="hidden"
                                                 />
                                                 <Upload className="mx-auto h-8 w-8 text-gray-400 mb-3 group-hover:text-[#a73f2b] transition-colors" />
-                                                <p className="text-sm font-medium text-gray-900 mb-1">Click to upload images</p>
-                                                <p className="text-xs text-gray-500">JPG, PNG, WebP up to 10MB each</p>
+                                                <p className="text-sm font-medium text-gray-900 mb-1">{artwork.category === 'Books' ? 'Click to upload book cover image' : 'Click to upload images'}</p>
+                                                <p className="text-xs text-gray-500">{artwork.category === 'Books' ? 'JPG, PNG, WebP — book cover image' : 'JPG, PNG, WebP up to 10MB each'}</p>
                                             </div>
 
                                             {artwork.previews.length > 0 && (
@@ -1231,7 +1332,7 @@ export function StudentSubmissionPage() {
                                 ))}
 
                                 <Button type="button" variant="outline" className="w-full h-12 rounded-xl border-dashed border-2 border-gray-300 text-gray-600 hover:border-[#a73f2b] hover:text-[#a73f2b] hover:bg-orange-50/50 transition-all font-medium" onClick={() => setArtworks((prev) => [...prev, createArtworkDraft()])}>
-                                    <Plus className="w-5 h-5 mr-2" /> Add Another Artwork
+                                    <Plus className="w-5 h-5 mr-2" /> Add Another Artwork / Book
                                 </Button>
                             </div>
                         </div>

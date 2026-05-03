@@ -40,11 +40,12 @@ const artistApplicationSchema = new mongoose.Schema(
         profilePicture: {
             url: {
                 type: String,
-                required: [true, "Profile picture is required"]
+                default: "" // Optional — backend provides a default if not uploaded
             },
             publicId: {
                 type: String,
-                required: true // Cloudinary public_id for deletion
+                required: false,
+                default: null
             }
         },
 
@@ -267,8 +268,8 @@ const artistApplicationSchema = new mongoose.Schema(
             type: [{
                 category: { type: String, required: true, trim: true },
                 title: { type: String, required: true, trim: true, maxlength: 120 },
-                size: { type: String, required: true, trim: true, maxlength: 80 },
-                medium: { type: String, required: true, trim: true, maxlength: 100 },
+                size: { type: String, trim: true, maxlength: 80, default: "" },
+                medium: { type: String, trim: true, maxlength: 100, default: "" },
                 price: { type: Number, required: true, min: 0 },
                 description: { type: String, trim: true, maxlength: 800, default: null },
                 primaryImageIndex: { type: Number, default: 0 },
@@ -279,6 +280,12 @@ const artistApplicationSchema = new mongoose.Schema(
                 categoryMeta: {
                     type: mongoose.Schema.Types.Mixed,
                     default: null
+                },
+                productType: { type: String, enum: ["artwork", "book"], default: "artwork" },
+                authorName: { type: String, trim: true, maxlength: 120, default: null },
+                pdfFile: {
+                    url: { type: String, default: null },
+                    publicId: { type: String, default: null }
                 }
             }],
             default: []

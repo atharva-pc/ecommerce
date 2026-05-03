@@ -16,24 +16,35 @@ const ALLOWED_PRODUCT_CATEGORIES = new Set([
     "crafts",
     "prints",
     "merchandise",
+    "book",
     "other"
 ]);
 
 const CATEGORY_ALIAS_MAP = {
-    "original-art": "painting",
-    "paintings": "painting",
-    "digital": "digital-art",
+    paintings: "painting",
+    painting: "painting",
+    sketches: "sketch",
+    sketch: "sketch",
+    photographs: "photography",
+    photograph: "photography",
+    digital: "digital-art",
     "digital-artwork": "digital-art",
-    "print": "prints",
+    print: "prints",
     "prints-reproductions": "prints",
     "prints-and-reproductions": "prints",
-    "art-merchandise": "merchandise",
+    "metal-art-craft": "crafts",
     "handcrafted-items": "crafts",
-    "handicrafts": "crafts"
+    handicrafts: "crafts",
+    "calligraphy-artworks": "other",
+    "mural-art": "other",
+    books: "book",
+    book: "book",
+    Books: "book",
+    Book: "book"
 };
 
 const normalizeProductCategory = (category) => {
-    if (!category) return undefined;
+    if (!category) return "other";
     const slug = String(category)
         .trim()
         .toLowerCase()

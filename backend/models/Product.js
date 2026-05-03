@@ -65,7 +65,6 @@ const productSchema = new mongoose.Schema(
             default: null // Original price for showing discounts
         },
 
-        // Category
         category: {
             type: String,
             required: [true, "Category is required"],
@@ -78,8 +77,25 @@ const productSchema = new mongoose.Schema(
                 "crafts",
                 "prints",
                 "merchandise",
+                "book",
                 "other"
             ]
+        },
+
+        // Product type discriminator
+        productType: {
+            type: String,
+            enum: ["artwork", "book"],
+            default: "artwork",
+            index: true
+        },
+
+        // Book-specific: author name
+        authorName: {
+            type: String,
+            trim: true,
+            maxlength: [120, "Author name cannot exceed 120 characters"],
+            default: null
         },
 
         // Tags for search
@@ -107,6 +123,12 @@ const productSchema = new mongoose.Schema(
         digitalFile: {
             url: { type: String },
             publicId: { type: String }
+        },
+
+        // PDF file (for books)
+        pdfFile: {
+            url: { type: String, default: null },
+            publicId: { type: String, default: null }
         },
 
         // Dimensions (for physical products)

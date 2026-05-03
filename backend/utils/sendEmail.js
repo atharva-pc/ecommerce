@@ -432,7 +432,7 @@ export const sendArtistStatusEmail = async (email, username, status, reason = nu
       : "Artist Application Update";
 
     const gradient = isApproved 
-      ? "linear-gradient(135deg, #10b981 0%, #059669 100%)" 
+      ? "linear-gradient(135deg, #c0396b 0%, #e8522a 48%, #f5a623 100%)" 
       : "linear-gradient(135deg, #e8522a 0%, #c0396b 100%)";
     const icon = isApproved ? "✅" : "⚠️";
     const statusText = isApproved ? "Approved" : "Not Approved";
@@ -448,7 +448,7 @@ export const sendArtistStatusEmail = async (email, username, status, reason = nu
     const bannerIconBg = isApproved ? "#10b981" : "#e53935";
     const bannerTitleColor = isApproved ? "#059669" : "#c62828";
     const bannerTextColor = isApproved ? "#065f46" : "#b71c1c";
-    const ctaColor = isApproved ? "#10b981" : "#e53935";
+    const ctaColor = isApproved ? "#c0396b" : "#e53935";
 
     const htmlContent = `<!DOCTYPE html>
 <html lang="en">
@@ -497,6 +497,18 @@ export const sendArtistStatusEmail = async (email, username, status, reason = nu
                   <p style="margin: 12px 0 0 0; font-size: 15px; color: rgba(255, 255, 255, 0.8); font-weight: 300; line-height: 1.6; max-width: 320px;">${headerSub}</p>
                 </div>
               </div>
+
+              <!-- Wave separator -->
+              <svg viewBox="0 0 580 44" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style="display: block; margin-top: -2px; width: 100%;">
+                <path d="M0,0 C145,44 435,0 580,32 L580,0 Z" fill="url(#statusWave)" />
+                <defs>
+                  <linearGradient id="statusWave" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:${isApproved ? '#c0396b' : '#e8522a'}" />
+                    <stop offset="50%" style="stop-color:${isApproved ? '#e8522a' : '#c0396b'}" />
+                    <stop offset="100%" style="stop-color:${isApproved ? '#f5a623' : '#c0396b'}" />
+                  </linearGradient>
+                </defs>
+              </svg>
 
               <!-- Body -->
               <div style="padding: 36px 40px 40px;">
@@ -549,6 +561,11 @@ export const sendArtistStatusEmail = async (email, username, status, reason = nu
           <tr>
             <td>
               <p style="font-size: 12px; color: #555; margin: 0;">© ${new Date().getFullYear()} ArtVPP · All rights reserved</p>
+              <p style="font-size: 12px; color: #555; margin: 6px 0 0 0;">
+                <a href="#" style="color: #f5a623; text-decoration: none;">Unsubscribe</a> &nbsp;·&nbsp;
+                <a href="#" style="color: #f5a623; text-decoration: none;">Privacy Policy</a> &nbsp;·&nbsp;
+                <a href="#" style="color: #f5a623; text-decoration: none;">Help Center</a>
+              </p>
             </td>
           </tr>
         </table>
@@ -599,7 +616,7 @@ export const sendArtistActionEmail = async (email, username, status, actionType,
       : `❌ ${actionLabel} Not Approved - ArtVPP`;
 
     const gradient = isApproved 
-      ? "linear-gradient(135deg, #10b981 0%, #059669 100%)" 
+      ? "linear-gradient(135deg, #c0396b 0%, #e8522a 48%, #f5a623 100%)" 
       : "linear-gradient(135deg, #e8522a 0%, #c0396b 100%)";
     const icon = isApproved ? "✅" : "⚠️";
     const statusText = isApproved ? "Approved" : "Not Approved";
@@ -615,7 +632,11 @@ export const sendArtistActionEmail = async (email, username, status, actionType,
     const bannerIconBg = isApproved ? "#10b981" : "#e53935";
     const bannerTitleColor = isApproved ? "#059669" : "#c62828";
     const bannerTextColor = isApproved ? "#065f46" : "#b71c1c";
-    const ctaColor = isApproved ? "#10b981" : "#e53935";
+    const ctaColor = isApproved ? "#c0396b" : "#e53935";
+
+    const waveStop1 = isApproved ? "#c0396b" : "#e8522a";
+    const waveStop2 = isApproved ? "#e8522a" : "#c0396b";
+    const waveStop3 = isApproved ? "#f5a623" : "#c0396b";
 
     const htmlContent = `<!DOCTYPE html>
 <html lang="en">
@@ -626,19 +647,16 @@ export const sendArtistActionEmail = async (email, username, status, actionType,
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
 </head>
 <body style="margin: 0; padding: 0; background-color: #ffffff; font-family: 'DM Sans', Arial, sans-serif; color: #1a1a1a;">
-  <!-- Hidden preview text -->
   <div style="display:none;font-size:1px;color:#333333;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">
-    ${isApproved ? "Great news! Your recent submission has been successfully approved." : "Update on your recent submission."}&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
+    ${isApproved ? "Great news! Your recent submission has been successfully approved." : "Update on your recent submission."}&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
   </div>
 
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f9f9f9; padding: 40px 16px;">
     <tr>
       <td align="center">
-        <!-- Main Wrapper -->
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 580px; width: 100%; margin: 0 auto; background: #ffffff; border-radius: 28px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);">
           <tr>
             <td>
-              <!-- Header -->
               <div style="background: ${gradient}; padding: 44px 40px 0;">
                 <table width="100%" cellpadding="0" cellspacing="0" border="0">
                   <tr>
@@ -665,10 +683,20 @@ export const sendArtistActionEmail = async (email, username, status, actionType,
                 </div>
               </div>
 
-              <!-- Body -->
+              <svg viewBox="0 0 580 44" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style="display: block; margin-top: -2px; width: 100%;">
+                <path d="M0,0 C145,44 435,0 580,32 L580,0 Z" fill="url(#actionWave)" />
+                <defs>
+                  <linearGradient id="actionWave" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:${waveStop1}" />
+                    <stop offset="50%" style="stop-color:${waveStop2}" />
+                    <stop offset="100%" style="stop-color:${waveStop3}" />
+                  </linearGradient>
+                </defs>
+              </svg>
+
               <div style="padding: 36px 40px 40px;">
                 <p style="font-size: 13px; color: #aaa; letter-spacing: 0.5px; text-transform: uppercase; margin: 0 0 4px 0;">Hey there,</p>
-                <h2 style="font-family: 'Playfair Display', serif; font-size: 30px; color: #111; margin: 0 0 18px 0;">${username || "Artist"} 👋</h2>
+                <h2 style="font-family: 'Playfair Display', serif; font-size: 30px; color: #111; margin: 0 0 18px 0;">${username || "Artist"} &#x1F44B;</h2>
 
                 <p style="font-size: 15px; line-height: 1.8; color: #555; margin: 0 0 32px 0;">
                   ${isApproved 
@@ -679,7 +707,7 @@ export const sendArtistActionEmail = async (email, username, status, actionType,
                 <table width="100%" cellpadding="0" cellspacing="0" style="background: ${bannerBg}; border: 1.5px solid ${bannerBorder}; border-radius: 16px; margin-bottom: 32px;">
                   <tr>
                     <td width="48" valign="middle" style="padding: 18px 0 18px 22px;">
-                      <div style="width: 48px; height: 48px; border-radius: 14px; background: ${bannerIconBg}; text-align: center; line-height: 48px; font-size: 22px; color: white;">${icon}</div>
+                      <div style="width: 48px; height: 48px; border-radius: 14px; background: ${bannerIconBg}; text-align: center; line-height: 48px; font-size: 22px; color: white; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);">${icon}</div>
                     </td>
                     <td valign="middle" style="padding: 18px 22px 18px 16px;">
                       <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: ${bannerTitleColor}; margin-bottom: 4px; font-weight: 700;">Submission Status</div>
@@ -692,9 +720,12 @@ export const sendArtistActionEmail = async (email, username, status, actionType,
                 <div style="background: #fafafa; border-left: 3px solid #e8522a; border-radius: 0 12px 12px 0; padding: 16px 18px; margin-bottom: 28px; font-size: 14px; line-height: 1.75; color: #444; font-style: italic;">
                   ${message}
                 </div>
+                ` : isApproved ? `
+                <div style="background: #fafafa; border-left: 3px solid #10b981; border-radius: 0 12px 12px 0; padding: 16px 18px; margin-bottom: 28px; font-size: 14px; line-height: 1.75; color: #444;">
+                  Your product has been approved and is now live!
+                </div>
                 ` : ''}
 
-                <!-- CTA -->
                 <div style="text-align: center; margin-bottom: 10px;">
                   <a href="${process.env.CLIENT_URL}/dashboard/artist" style="display: inline-block; background: ${ctaColor}; color: #fff; text-decoration: none; font-size: 16px; font-weight: 500; letter-spacing: 0.4px; padding: 17px 52px; border-radius: 50px;">Go to Dashboard</a>
                 </div>
@@ -704,18 +735,22 @@ export const sendArtistActionEmail = async (email, username, status, actionType,
 
                 <div style="font-size: 14px; color: #666; line-height: 1.8;">
                   With creativity &amp; warmth,
-                  <div style="font-family: 'Playfair Display', serif; font-size: 19px; color: #111; margin-top: 4px; font-weight: bold;">Team ArtVPP 🎨</div>
+                  <div style="font-family: 'Playfair Display', serif; font-size: 19px; color: #111; margin-top: 4px; font-weight: bold;">Team ArtVPP &#x1F3A8;</div>
                 </div>
               </div>
             </td>
           </tr>
         </table>
 
-        <!-- Footer -->
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 580px; width: 100%; margin: 0 auto; text-align: center; margin-top: 28px;">
           <tr>
             <td>
-              <p style="font-size: 12px; color: #555; margin: 0;">© ${new Date().getFullYear()} ArtVPP · All rights reserved</p>
+              <p style="font-size: 12px; color: #555; margin: 0;">&copy; ${new Date().getFullYear()} ArtVPP &middot; All rights reserved</p>
+              <p style="font-size: 12px; color: #555; margin: 6px 0 0 0;">
+                <a href="#" style="color: #f5a623; text-decoration: none;">Unsubscribe</a> &nbsp;&middot;&nbsp;
+                <a href="#" style="color: #f5a623; text-decoration: none;">Privacy Policy</a> &nbsp;&middot;&nbsp;
+                <a href="#" style="color: #f5a623; text-decoration: none;">Help Center</a>
+              </p>
             </td>
           </tr>
         </table>
@@ -741,10 +776,10 @@ export const sendArtistActionEmail = async (email, username, status, actionType,
     };
 
     await transporter.sendMail(mailOptions);
-    console.log(`✅ Artist action email sent to ${email}`);
+    console.log(`Artist action email sent to ${email}`);
     return true;
   } catch (error) {
-    console.error("❌ Artist action email sending failed:", error.message);
+    console.error("Artist action email sending failed:", error.message);
     return false;
   }
 };

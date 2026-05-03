@@ -32,6 +32,7 @@ const ALLOWED_PRODUCT_CATEGORIES = new Set([
     "crafts",
     "prints",
     "merchandise",
+    "book",
     "other"
 ]);
 
@@ -50,7 +51,14 @@ const CATEGORY_ALIAS_MAP = {
     "handcrafted-items": "crafts",
     handicrafts: "crafts",
     "calligraphy-artworks": "other",
-    "mural-art": "other"
+    "mural-art": "other",
+    books: "book",
+    book: "book",
+    Books: "book",
+    Book: "book",
+    "digital-art": "digital-art",
+    "digital-artwork": "digital-art",
+    digital: "digital-art"
 };
 
 const normalizeProductCategory = (category) => {
@@ -165,15 +173,12 @@ export const submitApplication = async (req, res) => {
             artworkDescriptions // JSON string array
         } = req.body;
 
-        // Debug: Log uploaded files
-        console.log("Uploaded files:", req.uploadedFiles);
-
-        // Validate uploaded files exist
-        if (!req.uploadedFiles || !req.uploadedFiles.profilePicture) {
+        // Validate uploaded files exist - artwork images required, profile picture optional
+        if (!req.uploadedFiles || !req.uploadedFiles.artworkImages || req.uploadedFiles.artworkImages.length < 1) {
             await cleanupUploadedFiles(req.uploadedFiles);
             return res.status(400).json({
                 success: false,
-                message: "Profile picture is required"
+                message: "Artwork images are required"
             });
         }
 
@@ -205,15 +210,12 @@ export const submitApplication = async (req, res) => {
 
         // Clean phone number (remove all non-digit characters)
         const cleanPhone = secondaryPhone.replace(/\D/g, '');
-        console.log("Original phone:", secondaryPhone, "Cleaned phone:", cleanPhone);
 
         // Handle phone with country code - keep last 10 digits
         let phoneNumber = cleanPhone;
         if (cleanPhone.length > 10) {
             phoneNumber = cleanPhone.slice(-10);
         }
-
-        console.log("Final phone number:", phoneNumber, "Length:", phoneNumber.length);
 
         if (phoneNumber.length !== 10) {
             await cleanupUploadedFiles(req.uploadedFiles);
@@ -259,8 +261,8 @@ export const submitApplication = async (req, res) => {
             userId,
             fullName,
             profilePicture: {
-                url: req.uploadedFiles.profilePicture.url,
-                publicId: req.uploadedFiles.profilePicture.publicId
+                url: req.uploadedFiles.profilePicture?.url || "",
+                publicId: req.uploadedFiles.profilePicture?.publicId || null
             },
             bio,
             // Primary contact info (from user's account)
@@ -971,7 +973,8 @@ export const deleteApplication = async (req, res) => {
         }
 
         // Collect all image public IDs for cleanup
-        const publicIds = [application.profilePicture.publicId];
+        const publicIds = [];
+        if (application.profilePicture?.publicId) publicIds.push(application.profilePicture.publicId);
         application.artworks.forEach(artwork => {
             publicIds.push(artwork.publicId);
         });
@@ -1218,8 +1221,9 @@ export const checkStudentAvailability = async (req, res) => {
     }
 };
 
-const buildStudentArtworkDetails = (parsedArtworksMeta, uploadedArtworkImages) => {
+const buildStudentArtworkDetails = (parsedArtworksMeta, uploadedArtworkImages, uploadedPdfFiles = []) => {
     return parsedArtworksMeta.map((item, index) => {
+        const isBook = normalizeProductCategory(String(item.category || "").trim()) === "book";
         const imageIndexes = Array.isArray(item.imageIndexes)
             ? item.imageIndexes
             : [];
@@ -1244,17 +1248,34 @@ const buildStudentArtworkDetails = (parsedArtworksMeta, uploadedArtworkImages) =
             throw new Error(`Artwork #${index + 1} must include a valid price`);
         }
 
-        return {
+        // Find PDF file for this artwork (matched by pdfIndex from frontend)
+        let pdfFile = null;
+        if (isBook && item.pdfIndex !== undefined && item.pdfIndex !== null) {
+            const pdfIdx = Number(item.pdfIndex);
+            if (uploadedPdfFiles[pdfIdx]) {
+                pdfFile = uploadedPdfFiles[pdfIdx];
+            }
+        }
+
+        const result = {
             category: String(item.category || "").trim(),
             title: String(item.title || "").trim(),
-            size: String(item.size || "").trim(),
-            medium: String(item.medium || "").trim(),
+            size: isBook ? "" : String(item.size || "").trim(),
+            medium: isBook ? "" : String(item.medium || "").trim(),
             price: parsedPrice,
             description: String(item.description || "").trim() || null,
             primaryImageIndex: safePrimaryIndex,
             images,
-            categoryMeta: item.categoryMeta || null
+            categoryMeta: item.categoryMeta || null,
+            productType: isBook ? "book" : "artwork",
+            authorName: isBook ? String(item.authorName || "").trim() : null
         };
+
+        if (pdfFile) {
+            result.pdfFile = pdfFile;
+        }
+
+        return result;
     });
 };
 
@@ -1274,21 +1295,23 @@ const buildCompatibilityArtworks = (studentArtworkDetails) => {
 
 const createStudentPendingActions = async ({ studentArtworkDetails, userId, applicationId }) => {
     await PendingAction.insertMany(
-        studentArtworkDetails.map((artwork, artworkIndex) => ({
-            artist: userId,
-            actionType: "create_product",
-            status: "pending",
-            data: {
+        studentArtworkDetails.map((artwork, artworkIndex) => {
+            const isBook = artwork.productType === "book";
+            const normalizedCategory = normalizeProductCategory(artwork.category);
+
+            const data = {
                 title: artwork.title,
                 displayName: artwork.title,
                 description: artwork.description || `${artwork.title} submitted via student artwork link.`,
                 price: artwork.price,
                 comparePrice: null,
-                category: normalizeProductCategory(artwork.category),
+                category: normalizedCategory,
                 tags: [artwork.category, artwork.medium].filter(Boolean).map((entry) => String(entry).toLowerCase()),
                 stock: 1,
-                isDigital: normalizeProductCategory(artwork.category) === "digital-art",
+                isDigital: normalizedCategory === "digital-art" || isBook,
                 submissionChannel: "student_link",
+                productType: isBook ? "book" : "artwork",
+                authorName: isBook ? artwork.authorName : null,
                 studentSubmissionMeta: {
                     applicationId,
                     artworkIndex,
@@ -1296,10 +1319,21 @@ const createStudentPendingActions = async ({ studentArtworkDetails, userId, appl
                     medium: artwork.medium,
                     categoryMeta: artwork.categoryMeta || null
                 }
-            },
-            images: artwork.images,
-            artistNote: artwork.description || `Student submission #${artworkIndex + 1}`
-        }))
+            };
+
+            if (isBook && artwork.pdfFile) {
+                data.pdfFile = artwork.pdfFile;
+            }
+
+            return {
+                artist: userId,
+                actionType: "create_product",
+                status: "pending",
+                data,
+                images: artwork.images,
+                artistNote: artwork.description || `Student submission #${artworkIndex + 1}`
+            };
+        })
     );
 };
 
@@ -1388,11 +1422,11 @@ export const submitStudentApplication = async (req, res) => {
         const profilePicture = req.uploadedFiles?.profilePicture;
         const uploadedArtworkImages = req.uploadedFiles?.artworkImages || [];
 
-        if (!profilePicture || uploadedArtworkImages.length < 1) {
+        if (uploadedArtworkImages.length < 1) {
             await cleanupUploadedFiles(req.uploadedFiles || {});
             return res.status(400).json({
                 success: false,
-                message: "Profile picture and artwork images are required"
+                message: "Artwork images are required"
             });
         }
 
@@ -1405,7 +1439,8 @@ export const submitStudentApplication = async (req, res) => {
             });
         }
 
-        const studentArtworkDetails = buildStudentArtworkDetails(parsedArtworksMeta, uploadedArtworkImages);
+        const uploadedPdfFilesPublic = req.uploadedFiles?.bookPdfs || [];
+        const studentArtworkDetails = buildStudentArtworkDetails(parsedArtworksMeta, uploadedArtworkImages, uploadedPdfFilesPublic);
 
         // Keep admin compatibility with existing artwork preview cards.
         const compatibilityArtworks = buildCompatibilityArtworks(studentArtworkDetails);
@@ -1416,7 +1451,7 @@ export const submitStudentApplication = async (req, res) => {
             email: cleanEmail,
             password,
             phone: cleanPhone,
-            avatar: profilePicture.url,
+            avatar: profilePicture?.url || "",
             role: "user",
             isVerified: true,
             artistRequest: {
@@ -1582,7 +1617,8 @@ export const submitStudentApplicationAuthenticated = async (req, res) => {
             });
         }
 
-        const studentArtworkDetails = buildStudentArtworkDetails(parsedArtworksMeta, uploadedArtworkImages);
+        const uploadedPdfFilesAuth = req.uploadedFiles?.bookPdfs || [];
+        const studentArtworkDetails = buildStudentArtworkDetails(parsedArtworksMeta, uploadedArtworkImages, uploadedPdfFilesAuth);
         const compatibilityArtworks = buildCompatibilityArtworks(studentArtworkDetails);
 
         const latestStudentSubmission = await ArtistApplication.findOne({
@@ -1816,7 +1852,8 @@ export const getStudentProfileInfo = async (req, res) => {
             state: application?.address?.state || "",
             pincode: application?.address?.pincode || "",
             country: application?.address?.country || "India",
-            email: user.email || ""
+            email: user.email || "",
+            avatar: user.avatar || application?.profilePicture || ""
         };
 
         return res.status(200).json({

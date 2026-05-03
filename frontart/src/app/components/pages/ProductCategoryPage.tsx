@@ -60,7 +60,7 @@ export function ProductCategoryPage() {
     return () => window.clearInterval(intervalId);
   }, []);
 
-  const availableCategories = ['painting', 'crafts', 'prints', 'other'];
+  const availableCategories = ['painting', 'sketch', 'digital-art', 'photography', 'sculpture', 'crafts', 'prints', 'merchandise', 'book', 'other'];
 
   const toggleCategory = (cat: string) => {
     setSelectedCategories(prev =>
