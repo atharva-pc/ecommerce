@@ -124,7 +124,7 @@ export function Header() {
                       <motion.div
                         layoutId="nav-underline"
                         className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#a73f2b] to-[#b30452] rounded-full"
-                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                        transition={{ type: "spring", stiffness: 380, stiffness: 380, damping: 30 }}
                       />
                     )}
                   </button>
@@ -219,6 +219,15 @@ export function Header() {
           {/* Right Actions - Right */}
           <div className="flex items-center justify-end gap-3 lg:gap-4 text-xs lg:text-sm font-medium">
             <div className="hidden md:flex items-center gap-3 lg:gap-6">
+              <motion.button
+                whileHover={{ y: -1 }}
+                onClick={() => navigate(user ? '/student-art-apply-k9x7m2q4r8t1v6' : '/login')}
+                className="flex items-center gap-2 text-slate-700 hover:text-slate-900 transition-colors whitespace-nowrap"
+              >
+                <Upload className="w-5 h-5" />
+                <span>Submit Artwork</span>
+              </motion.button>
+
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -251,23 +260,13 @@ export function Header() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <>
-                  <motion.button
-                    whileHover={{ y: -1 }}
-                    onClick={() => navigate('/student-art-apply-k9x7m2q4r8t1v6')}
-                    className="flex items-center gap-2 text-slate-700 hover:text-slate-900 transition-colors whitespace-nowrap"
-                  >
-                    <Upload className="w-5 h-5" />
-                    <span>Submit Artwork</span>
-                  </motion.button>
-                  <Button
-                    onClick={() => navigate('/login')}
-                    className="text-white px-5 py-2 text-xs lg:text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-250 border-0 bg-gradient-to-r from-[#a73f2b] to-[#b30452] hover:brightness-110 hover:shadow-[0px_6px_20px_rgba(179,4,82,0.35)]"
-                    style={{ borderRadius: '10px' }}
-                  >
-                    Login / signup
-                  </Button>
-                </>
+                <Button
+                  onClick={() => navigate('/login')}
+                  className="text-white px-5 py-2 text-xs lg:text-sm font-semibold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-250 border-0 bg-gradient-to-r from-[#a73f2b] to-[#b30452] hover:brightness-110 hover:shadow-[0px_6px_20px_rgba(179,4,82,0.35)]"
+                  style={{ borderRadius: '10px' }}
+                >
+                  Login / signup
+                </Button>
               )}
 
               <motion.button
@@ -415,76 +414,38 @@ export function Header() {
               ))}
 
               <motion.div
-                className="pt-6 mt-6 border-t border-gray-100 space-y-4"
+                className="pt-6 mt-6 border-t border-gray-100 space-y-6"
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: navItems.length * 0.05 }}
               >
-                {user ? (
-                  <>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#a73f2b] to-[#b30452] flex items-center justify-center text-white shadow-sm">
-                        <User className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold">{user.name}</p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
-                      </div>
-                    </div>
-                    {/* Mobile Dashboard Link */}
-                    {user.role === 'admin' && (
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start gap-3"
-                        onClick={() => {
-                          navigate('/dashboard/admin');
-                          setMobileMenuOpen(false);
-                        }}
-                      >
-                        <LayoutDashboard className="w-4 h-4" />
-                        Admin Dashboard
-                      </Button>
-                    )}
-
-                    {user.role === 'artist' && (
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start gap-3"
-                        onClick={() => {
-                          navigate('/dashboard/vendor');
-                          setMobileMenuOpen(false);
-                        }}
-                      >
-                        <LayoutDashboard className="w-4 h-4" />
-                        Artist Dashboard
-                      </Button>
-                    )}
-
+                {/* Primary Action Row */}
+                <div className="grid grid-cols-2 gap-4">
+                  <Button
+                    variant="outline"
+                    className="w-full flex items-center justify-center gap-2 h-12"
+                    onClick={() => {
+                      navigate(user ? '/student-art-apply-k9x7m2q4r8t1v6' : '/login');
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <Upload className="w-4 h-4" />
+                    Submit
+                  </Button>
+                  {!user ? (
                     <Button
-                      variant="outline"
-                      className="w-full justify-start gap-3"
+                      className="bg-gradient-to-r from-[#a73f2b] to-[#b30452] text-white border-0 h-12"
                       onClick={() => {
-                        navigate(getPrimaryDashboardPath());
+                        navigate('/login');
                         setMobileMenuOpen(false);
                       }}
                     >
-                      <User className="w-4 h-4" />
-                      {user.role === 'user' ? 'My Profile' : 'My Dashboard'}
+                      Login / Join
                     </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start gap-3"
-                      onClick={() => {
-                        navigate(getOrdersPath());
-                        setMobileMenuOpen(false);
-                      }}
-                    >
-                      <ShoppingBag className="w-4 h-4" />
-                      My Orders
-                    </Button>
+                  ) : (
                     <Button
                       variant="ghost"
-                      className="w-full justify-start gap-3 text-red-500 hover:text-red-600 hover:bg-red-50"
+                      className="text-red-500 hover:bg-red-50 h-12 border border-red-100"
                       onClick={() => {
                         toast.success('Logged out successfully!');
                         logout();
@@ -492,30 +453,46 @@ export function Header() {
                         setMobileMenuOpen(false);
                       }}
                     >
-                      <LogOut className="w-4 h-4" />
+                      <LogOut className="w-4 h-4 mr-2" />
                       Logout
                     </Button>
-                  </>
-                ) : (
-                  <div className="grid grid-cols-2 gap-4">
+                  )}
+                </div>
+
+                {user && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl mb-2">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#a73f2b] to-[#b30452] flex items-center justify-center text-white shadow-sm">
+                        <User className="w-5 h-5" />
+                      </div>
+                      <div className="overflow-hidden">
+                        <p className="text-sm font-semibold truncate">{user.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                      </div>
+                    </div>
+
                     <Button
                       variant="outline"
+                      className="w-full justify-start gap-3 h-11"
                       onClick={() => {
-                        navigate('/login');
+                        navigate(getPrimaryDashboardPath());
                         setMobileMenuOpen(false);
                       }}
                     >
-                      Login
+                      <LayoutDashboard className="w-4 h-4 text-gray-500" />
+                      {user.role === 'user' ? 'My Profile' : 'My Dashboard'}
                     </Button>
+
                     <Button
-                      className="bg-gradient-to-r from-[#a73f2b] to-[#b30452] hover:brightness-110 text-white shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-250 border-0 w-full"
+                      variant="outline"
+                      className="w-full justify-start gap-3 h-11"
                       onClick={() => {
-                        navigate('/student-art-apply-k9x7m2q4r8t1v6');
+                        navigate(getOrdersPath());
                         setMobileMenuOpen(false);
                       }}
                     >
-                      <Upload className="w-4 h-4 mr-2" />
-                      Submit Artwork
+                      <ShoppingBag className="w-4 h-4 text-gray-500" />
+                      My Orders
                     </Button>
                   </div>
                 )}
