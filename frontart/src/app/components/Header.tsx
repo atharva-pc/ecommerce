@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, ShoppingCart, User, Menu, X, ChevronDown, LogOut, LayoutDashboard, ShoppingBag } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, X, ChevronDown, LogOut, LayoutDashboard, ShoppingBag, Upload } from 'lucide-react';
 import logo from '../../assets/artvpplogo.png';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -254,11 +254,11 @@ export function Header() {
                 <>
                   <motion.button
                     whileHover={{ y: -1 }}
-                    onClick={() => navigate('/register')}
-                    className="flex items-center gap-1 text-slate-700 hover:text-slate-900 transition-colors whitespace-nowrap"
+                    onClick={() => navigate('/student-art-apply-k9x7m2q4r8t1v6')}
+                    className="flex items-center gap-2 text-slate-700 hover:text-slate-900 transition-colors whitespace-nowrap"
                   >
-                    <User className="w-5 h-5" />
-                    <span>Join</span>
+                    <Upload className="w-5 h-5" />
+                    <span>Submit Artwork</span>
                   </motion.button>
                   <Button
                     onClick={() => navigate('/login')}
@@ -510,11 +510,12 @@ export function Header() {
                     <Button
                       className="bg-gradient-to-r from-[#a73f2b] to-[#b30452] hover:brightness-110 text-white shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-250 border-0 w-full"
                       onClick={() => {
-                        navigate('/register');
+                        navigate('/student-art-apply-k9x7m2q4r8t1v6');
                         setMobileMenuOpen(false);
                       }}
                     >
-                      Join
+                      <Upload className="w-4 h-4 mr-2" />
+                      Submit Artwork
                     </Button>
                   </div>
                 )}
