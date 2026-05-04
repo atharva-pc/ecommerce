@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { motion } from 'motion/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -862,8 +863,21 @@ export function StudentSubmissionPage() {
                 </div>
                 
                 <div className="relative z-10 max-w-5xl mx-auto px-6 h-full flex flex-col items-center justify-center text-center">
-                    <h1 className="text-5xl md:text-7xl font-serif font-bold text-white mb-6 drop-shadow-md" style={{ fontFamily: "'Playfair Display', serif" }}>
-                        Share Your Art with the World
+                    <h1 className="text-5xl md:text-7xl font-serif font-bold text-white mb-6 drop-shadow-md relative" style={{ fontFamily: "'Playfair Display', serif" }}>
+                        Share Your Art with the <span className="relative inline-block">
+                            World
+                            <motion.div 
+                                initial={{ scale: 0, rotate: -20 }}
+                                animate={{ scale: 1, rotate: 12 }}
+                                transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.5 }}
+                                className="absolute -top-6 -right-14 md:-top-8 md:-right-20 bg-[#FFD700] text-black text-[12px] md:text-[14px] font-black w-12 h-12 md:w-16 md:h-16 flex items-center justify-center shadow-lg border-2 border-white z-20"
+                                style={{ 
+                                    clipPath: 'polygon(50% 0%, 61% 14%, 80% 6%, 80% 28%, 100% 30%, 89% 50%, 100% 70%, 80% 72%, 80% 94%, 61% 86%, 50% 100%, 39% 86%, 20% 94%, 20% 72%, 0% 70%, 11% 50%, 0% 30%, 20% 28%, 20% 6%, 39% 14%)'
+                                }}
+                            >
+                                FREE
+                            </motion.div>
+                        </span>
                     </h1>
                     <p className="text-xl md:text-2xl text-gray-200 max-w-2xl mx-auto font-light leading-relaxed">
                         Join our curated community of artists. Apply to sell your artworks on ArtVPP and reach collectors globally.
