@@ -38,13 +38,13 @@ const DEFAULT_CONFIG: any = {
 
 const SERVICE_DEFAULTS: Record<string, { heroImage: string; title: string; subtitle: string; city: string }> = {
   photography: {
-    heroImage: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=1600&q=80',
+    heroImage: '',
     title: 'Professional Photography',
     subtitle: 'Capture your moments with cinematic precision and artistic flair.',
     city: 'Mumbai'
   },
   calligraphy: {
-    heroImage: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=1600&q=80',
+    heroImage: '',
     title: 'Master Calligraphy',
     subtitle: 'Exquisite hand-lettered art for branding, invitations, and custom commissions.',
     city: 'Mumbai'
@@ -62,7 +62,7 @@ const SERVICE_DEFAULTS: Record<string, { heroImage: string; title: string; subti
     city: 'Mumbai'
   },
   sculpture: {
-    heroImage: 'https://res.cloudinary.com/djljjozxa/image/upload/v1771403183/artvpp/frontend/images/y.jpg',
+    heroImage: '',
     title: 'Sculpture & 3D Art',
     subtitle: 'Custom sculptures and 3D art installations for personal and commercial spaces.',
     city: 'Mumbai'
@@ -74,7 +74,7 @@ const SERVICE_DEFAULTS: Record<string, { heroImage: string; title: string; subti
     city: 'Mumbai'
   },
   workshops: {
-    heroImage: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=1600&q=80',
+    heroImage: '',
     title: 'Creative Workshops',
     subtitle: 'Learn and create with hands-on sessions led by professional artists.',
     city: 'Mumbai'
