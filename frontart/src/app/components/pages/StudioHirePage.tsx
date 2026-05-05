@@ -26,18 +26,18 @@ const getVersionedUrl = (url?: string, version?: string | number) => {
 };
 
 const DEFAULT_CONFIG: any = {
-  serviceName: '',
-  title: '',
-  subtitle: '',
-  city: '',
-  heroImage: null,
+  serviceName: 'Studio on Hire',
+  title: 'ArtVPP Studio Hire',
+  subtitle: 'Professional video & photo studio with chroma green screen, lighting, Sony A7M3 camera kit and full equipment setup.',
+  city: 'Mumbai',
+  heroImage: { url: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=1600&q=80', publicId: 'default' },
   galleryImages: [],
   whatWeOffer: [],
   perfectFor: [],
   equipmentCategories: [],
   pricingOptions: [],
   discountRules: { fiveDayDiscountPerDay: 0 },
-  responseTimeText: ''
+  responseTimeText: 'Usually responds within 2 hours'
 };
 
 const CONFIG_CACHE_KEY = 'studioHire.configCache.v1';
@@ -201,7 +201,23 @@ export function StudioHirePage() {
     writeCacheValue(DRAFT_CACHE_KEY, draft);
   }, [draft, draftHydrated, isAdmin, loading]);
 
-  const effectiveConfig = isAdmin && showEditor ? draft : config;
+  const effectiveConfig = useMemo(() => {
+    const base = isAdmin && showEditor ? draft : config;
+    if (!base.title) {
+        return {
+            ...base,
+            title: DEFAULT_CONFIG.title,
+            subtitle: DEFAULT_CONFIG.subtitle,
+            city: DEFAULT_CONFIG.city,
+            heroImage: base.heroImage || DEFAULT_CONFIG.heroImage,
+            responseTimeText: base.responseTimeText || DEFAULT_CONFIG.responseTimeText
+        };
+    }
+    return {
+        ...base,
+        heroImage: base.heroImage || DEFAULT_CONFIG.heroImage
+    };
+  }, [config, draft, isAdmin, showEditor]);
   const bookingDisabled = isAdmin && showEditor;
 
   const selectedPricing = useMemo(
