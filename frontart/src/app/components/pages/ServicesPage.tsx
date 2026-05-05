@@ -13,9 +13,8 @@ import { LightboxImage } from '../LightboxImage';
 
 const getVersionedUrl = (url?: string, version?: string | number) => {
   if (!url) return '';
-  if (url.includes('cloudinary') || url.startsWith('http') || url.startsWith('/')) {
-      const v = version || Date.now();
-      return `${url}${url.includes('?') ? '&' : '?'}v=${v}`;
+  if (version && (url.includes('cloudinary') || url.startsWith('http') || url.startsWith('/'))) {
+      return `${url}${url.includes('?') ? '&' : '?'}v=${version}`;
   }
   return url;
 };
@@ -36,6 +35,7 @@ const PLATFORM_SERVICES = [
     title: 'Photography',
     description: 'Professional photography services for events, portraits, products, and creative projects.',
     icon: <Camera className="w-7 h-7" />,
+    image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=600&q=80',
     available: true,
     link: '/services/photography',
     configKey: 'photography',
@@ -45,6 +45,7 @@ const PLATFORM_SERVICES = [
     title: 'Calligraphy',
     description: 'Hand lettering and calligraphy for invitations, branding, wall art, and custom commissions.',
     icon: <Paintbrush className="w-7 h-7" />,
+    image: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=600&q=80',
     available: true,
     link: '/services/calligraphy',
     configKey: 'calligraphy',
@@ -74,6 +75,7 @@ const PLATFORM_SERVICES = [
     title: 'Sculpture & 3D Art',
     description: 'Custom sculptures, 3D art installations, and artistic modeling services.',
     icon: <Boxes className="w-7 h-7" />,
+    image: 'https://res.cloudinary.com/djljjozxa/image/upload/v1771403183/artvpp/frontend/images/y.jpg',
     available: true,
     link: '/services/sculpture',
     configKey: 'sculpture',
@@ -93,6 +95,7 @@ const PLATFORM_SERVICES = [
     title: 'Workshops & Classes',
     description: 'Art workshops, creative classes, and hands-on learning sessions with professional artists.',
     icon: <GraduationCap className="w-7 h-7" />,
+    image: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&q=80',
     available: true,
     link: '/services/workshops',
     configKey: 'workshops',

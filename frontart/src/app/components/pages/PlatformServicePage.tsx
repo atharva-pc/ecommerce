@@ -14,9 +14,8 @@ import { LightboxImage } from '../LightboxImage';
 
 const getVersionedUrl = (url?: string, version?: string | number) => {
   if (!url) return '';
-  if (url.includes('cloudinary') || url.startsWith('http') || url.startsWith('/')) {
-      const v = version || Date.now();
-      return `${url}${url.includes('?') ? '&' : '?'}v=${v}`;
+  if (version && (url.includes('cloudinary') || url.startsWith('http') || url.startsWith('/'))) {
+      return `${url}${url.includes('?') ? '&' : '?'}v=${version}`;
   }
   return url;
 };
