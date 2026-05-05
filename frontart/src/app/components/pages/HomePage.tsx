@@ -12,6 +12,15 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 // Slider images are now loaded from Cloudinary URLs
 
+const getVersionedUrl = (url?: string, version?: string | number) => {
+  if (!url) return '';
+  if (url.includes('cloudinary') || url.startsWith('http') || url.startsWith('/')) {
+      const v = version || Date.now();
+      return `${url}${url.includes('?') ? '&' : '?'}v=${v}`;
+  }
+  return url;
+};
+
 const fadeIn = {
   hidden: { opacity: 0, y: 30 },
   visible: {
@@ -55,6 +64,7 @@ export function HomePage() {
             price: p.price || 0,
             category: p.category || '',
             medium: p.category || '',
+            updatedAt: p.updatedAt
           })));
         }
       } catch (e) {
@@ -362,7 +372,7 @@ export function HomePage() {
                 >
                   <div className="relative aspect-[3/4] overflow-hidden bg-white mb-4 rounded-[12px] shadow-sm hover:shadow-xl transition-shadow duration-300 border border-gray-100 flex items-center justify-center">
                     <img
-                      src={artwork.image}
+                      src={getVersionedUrl(artwork.image, artwork.updatedAt)}
                       alt={artwork.title}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />

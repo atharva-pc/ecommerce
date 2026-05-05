@@ -10,8 +10,17 @@ import { Badge } from '../ui/badge';
 import { toast } from 'sonner';
 import { motion } from 'motion/react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { bookService, getServiceBySlug, getServices } from '../../utils/api';
+import { getServiceBySlug, getServices, bookService } from '../../utils/api';
 import { useApp } from '../../context/AppContext';
+
+const getVersionedUrl = (url?: string, version?: string | number) => {
+  if (!url) return '';
+  if (url.includes('cloudinary') || url.startsWith('http') || url.startsWith('/')) {
+      const v = version || Date.now();
+      return `${url}${url.includes('?') ? '&' : '?'}v=${v}`;
+  }
+  return url;
+};
 
 export function ServiceDetailPage() {
   const { id: serviceParam } = useParams();
@@ -186,7 +195,7 @@ export function ServiceDetailPage() {
 
             <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="relative">
               <div className="aspect-[4/3] overflow-hidden rounded-lg shadow-2xl">
-                <img src={service.images?.[0]?.url || '/placeholder.jpg'} alt={service.title} className="w-full h-full object-cover" />
+                <img src={getVersionedUrl(service.images?.[0]?.url || '/placeholder.jpg', service.updatedAt)} alt={service.title} className="w-full h-full object-cover" />
               </div>
             </motion.div>
           </div>
@@ -302,7 +311,7 @@ export function ServiceDetailPage() {
               {relatedServices.map((relatedService) => (
                 <Card key={relatedService._id} className="overflow-hidden hover:shadow-xl transition-all group cursor-pointer" onClick={() => navigate(`/service/${relatedService.slug || relatedService._id}`)}>
                   <div className="aspect-[4/3] overflow-hidden">
-                    <img src={relatedService.images?.[0]?.url || '/placeholder.jpg'} alt={relatedService.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                    <img src={getVersionedUrl(relatedService.images?.[0]?.url || '/placeholder.jpg', relatedService.updatedAt)} alt={relatedService.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                   </div>
                   <CardContent className="p-6">
                     <h3 className="text-xl font-medium mb-2 text-gray-900">{relatedService.title}</h3>

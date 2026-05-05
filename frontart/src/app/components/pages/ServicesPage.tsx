@@ -9,6 +9,16 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getPlatformServiceConfig, getServiceCategories, getServices } from '../../utils/api';
 import { Input } from '../ui/input';
 import { toast } from 'sonner';
+import { LightboxImage } from '../LightboxImage';
+
+const getVersionedUrl = (url?: string, version?: string | number) => {
+  if (!url) return '';
+  if (url.includes('cloudinary') || url.startsWith('http') || url.startsWith('/')) {
+      const v = version || Date.now();
+      return `${url}${url.includes('?') ? '&' : '?'}v=${v}`;
+  }
+  return url;
+};
 
 // Platform services — All services are now live
 const PLATFORM_SERVICES = [
@@ -231,30 +241,34 @@ export function ServicesPage() {
                 <Card className="overflow-hidden border-0 shadow-[0_6px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.12)] transition-all duration-300 h-full relative rounded-2xl bg-white group-hover:ring-1 group-hover:ring-[#b30452]/20">
                   {/* Image */}
                   <div className="aspect-[4/3] overflow-hidden bg-gray-100 relative">
-                    <img
-                      src={service.configKey && platformConfigs?.[service.configKey] 
-                        ? (platformConfigs[service.configKey].heroImage?.url || platformConfigs[service.configKey].galleryImages?.[0]?.url || service.image) 
-                        : service.image}
+                    <LightboxImage
+                      src={getVersionedUrl(
+                        service.configKey && platformConfigs?.[service.configKey] 
+                          ? (platformConfigs[service.configKey].heroImage?.url || platformConfigs[service.configKey].galleryImages?.[0]?.url || service.image) 
+                          : service.image,
+                        service.configKey && platformConfigs?.[service.configKey]?.updatedAt
+                      )}
                       alt={service.configKey && platformConfigs?.[service.configKey]
                         ? (platformConfigs[service.configKey].title || service.title)
                         : service.title}
-                      className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${!service.available ? 'grayscale-[40%]' : ''}`}
+                      className={`w-full h-full transition-transform duration-700 ${!service.available ? 'grayscale-[40%]' : ''}`}
+                      aspectRatio="none"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none" />
 
                     {/* Available / Coming Soon Badge */}
                     {service.available ? (
-                      <Badge className="absolute top-3 right-3 bg-emerald-500 text-white border-0 shadow-lg text-xs">
+                      <Badge className="absolute top-3 right-3 bg-emerald-500 text-white border-0 shadow-lg text-xs z-10">
                         ● Available
                       </Badge>
                     ) : (
-                      <Badge className="absolute top-3 right-3 bg-gray-800/80 text-white border-0 shadow-lg text-xs">
+                      <Badge className="absolute top-3 right-3 bg-gray-800/80 text-white border-0 shadow-lg text-xs z-10">
                         Coming Soon
                       </Badge>
                     )}
 
                     {/* Icon overlay */}
-                    <div className="absolute bottom-3 left-3">
+                    <div className="absolute bottom-3 left-3 z-10">
                       <div className="w-11 h-11 rounded-full bg-gradient-to-r from-[#a73f2b] to-[#b30452] flex items-center justify-center text-white shadow-lg transform group-hover:scale-110 transition-transform duration-300">
                         {service.icon}
                       </div>
@@ -342,13 +356,14 @@ export function ServicesPage() {
                 >
                   <Card className="overflow-hidden border-0 shadow-[0_6px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.12)] transition-all duration-300 h-full group bg-white rounded-2xl group-hover:ring-1 group-hover:ring-[#b30452]/20">
                     <div className="aspect-[4/3] overflow-hidden bg-gray-100 relative">
-                      <img
-                        src={service.images?.[0]?.url || '/placeholder.jpg'}
+                      <LightboxImage
+                        src={getVersionedUrl(service.images?.[0]?.url || '/placeholder.jpg', service.updatedAt)}
                         alt={service.title}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        className="w-full h-full transition-transform duration-700"
+                        aspectRatio="none"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                      <Badge className="absolute top-4 right-4 bg-white/95 text-gray-900 border-0">
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+                      <Badge className="absolute top-4 right-4 bg-white/95 text-gray-900 border-0 z-10">
                         {service.category}
                       </Badge>
                     </div>

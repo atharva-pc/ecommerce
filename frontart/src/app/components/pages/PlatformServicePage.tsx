@@ -10,6 +10,16 @@ import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { adminUpdatePlatformServiceConfig, adminUploadPlatformServiceImages, bookPlatformService, getPlatformServiceConfig } from '../../utils/api';
 import { motion } from 'motion/react';
+import { LightboxImage } from '../LightboxImage';
+
+const getVersionedUrl = (url?: string, version?: string | number) => {
+  if (!url) return '';
+  if (url.includes('cloudinary') || url.startsWith('http') || url.startsWith('/')) {
+      const v = version || Date.now();
+      return `${url}${url.includes('?') ? '&' : '?'}v=${v}`;
+  }
+  return url;
+};
 
 const DEFAULT_CONFIG: any = {
   serviceName: '',
@@ -60,7 +70,8 @@ const normalizeConfig = (value: any) => ({
   discountRules: {
     fiveDayDiscountPerDay: Math.max(0, Number(value?.discountRules?.fiveDayDiscountPerDay ?? 0))
   },
-  responseTimeText: clean(value?.responseTimeText)
+  responseTimeText: clean(value?.responseTimeText),
+  updatedAt: value?.updatedAt || ''
 });
 
 const readCacheValue = (key: string) => {
@@ -90,12 +101,12 @@ const clearCacheValue = (key: string) => {
   }
 };
 
-function EditorImagePreview({ url, alt }: { url?: string; alt: string }) {
+function EditorImagePreview({ url, alt, version }: { url?: string; alt: string; version?: string | number }) {
   if (!clean(url)) {
-    return <div className="h-[120px] rounded-[10px] border border-dashed border-[#d9cfbf] bg-[#faf6ef]" />;
+    return <div className="h-24 rounded-xl border border-dashed border-[#d9cfbf] bg-[#faf6ef]" />;
   }
 
-  return <img src={url} alt={alt} className="h-[120px] w-full rounded-[10px] border border-[#eee] object-cover" />;
+  return <img src={getVersionedUrl(url, version)} alt={alt} className="h-24 w-full rounded-xl border border-[#e7dfd1] object-cover" />;
 }
 
 async function uploadSingleImage(
@@ -251,7 +262,8 @@ export function PlatformServicePage({
         ...draft,
         galleryImages: (draft.galleryImages || []).map(normalizeImage).filter(Boolean),
         whatWeOffer: (draft.whatWeOffer || []).filter((item: any) => clean(item?.title) || clean(item?.description) || clean(item?.image?.url)),
-        pricingOptions: (draft.pricingOptions || []).map((item: any) => ({ ...item, id: clean(item?.id) || toPricingId(item?.name || '') })).filter((item: any) => clean(item?.name))
+        pricingOptions: (draft.pricingOptions || []).map((item: any) => ({ ...item, id: clean(item?.id) || toPricingId(item?.name || '') })).filter((item: any) => clean(item?.name)),
+        updatedAt: Date.now()
       });
       const response = await adminUpdatePlatformServiceConfig(serviceKey, payload);
       const nextConfig = normalizeConfig(response?.data?.service);
@@ -315,33 +327,25 @@ export function PlatformServicePage({
                 <Textarea rows={3} value={draft.subtitle || ''} placeholder="Subtitle" onChange={(e) => setDraft((prev: any) => ({ ...prev, subtitle: e.target.value }))} />
 
                 <div className="rounded-xl border border-[#e7dfd1] bg-white p-4">
-                  <Label>Hero Image</Label>
-                  <div className="mt-3 grid md:grid-cols-2 gap-4 items-start">
-                    <EditorImagePreview url={draft.heroImage?.url} alt="Hero image preview" />
-                    <div className="flex flex-col gap-2">
-                      <label className="inline-flex items-center justify-center rounded-md border border-input px-3 py-2 text-sm cursor-pointer w-fit">
-                        Upload Hero
-                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => { try { setUploading(true); const image = await uploadSingleImage(e.target.files, uploadImages); if (image) setDraft((prev: any) => ({ ...prev, heroImage: image })); } catch (error: any) { toast.error(error?.message || 'Hero upload failed'); } finally { setUploading(false); e.target.value = ''; } }} />
-                      </label>
-                      <Button type="button" variant="outline" onClick={() => setDraft((prev: any) => ({ ...prev, heroImage: null }))}>Remove Hero</Button>
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <Label>Hero Image</Label>
+                    <span className="text-xs text-[#7e6b58]">Current saved backend image preview</span>
                   </div>
+                  <EditorImagePreview url={draft.heroImage?.url} alt="Hero preview" version={draft.updatedAt} />
+                  <label className="inline-flex items-center gap-2 rounded-md border border-input px-3 text-sm cursor-pointer h-10 w-fit">
+                    Upload Hero
+                    <input type="file" accept="image/*" className="hidden" onChange={async (e) => { try { setUploading(true); const image = await uploadSingleImage(e.target.files, uploadImages); if (image) setDraft((prev: any) => ({ ...prev, heroImage: image, updatedAt: Date.now() })); } catch (error: any) { toast.error(error?.message || 'Hero upload failed'); } finally { setUploading(false); e.target.value = ''; } }} />
+                  </label>
+                  <Button type="button" variant="outline" onClick={() => setDraft((prev: any) => ({ ...prev, heroImage: null, updatedAt: Date.now() }))}>Remove Hero</Button>
                 </div>
 
                 <div className="rounded-xl border border-[#e7dfd1] bg-white p-4 space-y-3">
                   <div className="flex items-center justify-between"><Label>Gallery Images</Label></div>
-                  <div className="grid grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-[14px]">
-                    {(draft.galleryImages || []).map((img: any, index: number) => (
-                      <div key={index} className="p-[10px] bg-[#fafafa] rounded-[10px] space-y-2 border border-[#eee]">
-                        <EditorImagePreview url={img?.url} alt={`Gallery image ${index + 1}`} />
-                        <Button type="button" variant="ghost" size="sm" className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 h-8" onClick={() => setDraft((prev: any) => ({ ...prev, galleryImages: prev.galleryImages.filter((_: any, itemIndex: number) => itemIndex !== index) }))}>Remove</Button>
-                      </div>
-                    ))}
-                  </div>
-                  <label className="inline-flex items-center justify-center rounded-md border border-input px-3 py-2 text-sm font-medium cursor-pointer w-fit hover:bg-gray-50 transition-colors">
-                    Upload Gallery Images
-                    <input type="file" accept="image/*" multiple className="hidden" onChange={async (e) => { try { setUploading(true); const images = await uploadImages(e.target.files); if (images.length) setDraft((prev: any) => ({ ...prev, galleryImages: [...(prev.galleryImages || []), ...images] })); } catch (error: any) { toast.error(error?.message || 'Gallery upload failed'); } finally { setUploading(false); e.target.value = ''; } }} />
+                  <label className="inline-flex items-center gap-2 rounded-md border border-input px-3 text-sm cursor-pointer h-10 w-fit">
+                    Upload Gallery
+                    <input type="file" accept="image/*" multiple className="hidden" onChange={async (e) => { try { setUploading(true); const images = await uploadImages(e.target.files); if (images.length) setDraft((prev: any) => ({ ...prev, galleryImages: [...(prev.galleryImages || []), ...images], updatedAt: Date.now() })); } catch (error: any) { toast.error(error?.message || 'Gallery upload failed'); } finally { setUploading(false); e.target.value = ''; } }} />
                   </label>
+                  {(draft.galleryImages || []).map((image: any, index: number) => <div key={index} className="grid gap-2 md:grid-cols-[120px_auto] md:items-center"><EditorImagePreview url={image?.url} alt={`Gallery ${index + 1}`} version={draft.updatedAt} /><Button type="button" variant="outline" onClick={() => setDraft((prev: any) => ({ ...prev, galleryImages: prev.galleryImages.filter((_: any, itemIndex: number) => itemIndex !== index), updatedAt: Date.now() }))}><Trash2 className="h-4 w-4" /></Button></div>)}
                 </div>
 
                 <div className="rounded-xl border border-[#e7dfd1] bg-white p-4 space-y-3">
@@ -351,18 +355,14 @@ export function PlatformServicePage({
                   </div>
                   {(draft.whatWeOffer || []).map((offer: any, index: number) => (
                     <div key={index} className="rounded-xl border border-[#efe7db] p-4 space-y-3">
-                      <div className="flex justify-between items-center">
-                        <p className="text-sm font-medium text-[#221819]">Offer {index + 1}</p>
-                        <Button type="button" variant="outline" onClick={() => setDraft((prev: any) => ({ ...prev, whatWeOffer: prev.whatWeOffer.filter((_: any, itemIndex: number) => itemIndex !== index) }))}><Trash2 className="h-4 w-4" /></Button>
-                      </div>
-                      <div className="grid md:grid-cols-2 gap-3">
-                        <Input value={offer?.title || ''} placeholder="Title" onChange={(e) => setDraft((prev: any) => ({ ...prev, whatWeOffer: prev.whatWeOffer.map((item: any, itemIndex: number) => itemIndex === index ? { ...item, title: e.target.value } : item) }))} />
-                        <label className="inline-flex items-center justify-center rounded-md border border-input px-3 py-2 text-sm cursor-pointer w-fit">
-                          Upload Offer Image
-                          <input type="file" accept="image/*" className="hidden" onChange={async (e) => { try { setUploading(true); const image = await uploadSingleImage(e.target.files, uploadImages); if (image) setDraft((prev: any) => ({ ...prev, whatWeOffer: prev.whatWeOffer.map((item: any, itemIndex: number) => itemIndex === index ? { ...item, image } : item) })); } catch (error: any) { toast.error(error?.message || 'Offer image upload failed'); } finally { setUploading(false); e.target.value = ''; } }} />
-                        </label>
-                      </div>
-                      <Textarea rows={3} value={offer?.description || ''} placeholder="Description" onChange={(e) => setDraft((prev: any) => ({ ...prev, whatWeOffer: prev.whatWeOffer.map((item: any, itemIndex: number) => itemIndex === index ? { ...item, description: e.target.value } : item) }))} />
+                      <div className="flex justify-end"><Button type="button" variant="outline" onClick={() => setDraft((prev: any) => ({ ...prev, whatWeOffer: prev.whatWeOffer.filter((_: any, itemIndex: number) => itemIndex !== index), updatedAt: Date.now() }))}><Trash2 className="h-4 w-4" /></Button></div>
+                      <Input value={offer?.title || ''} placeholder="Offer title" onChange={(e) => setDraft((prev: any) => ({ ...prev, whatWeOffer: prev.whatWeOffer.map((item: any, itemIndex: number) => itemIndex === index ? { ...item, title: e.target.value } : item) }))} />
+                      <Textarea rows={2} value={offer?.description || ''} placeholder="Offer description" onChange={(e) => setDraft((prev: any) => ({ ...prev, whatWeOffer: prev.whatWeOffer.map((item: any, itemIndex: number) => itemIndex === index ? { ...item, description: e.target.value } : item) }))} />
+                      <EditorImagePreview url={offer?.image?.url} alt={offer?.title || `Offer ${index + 1}`} version={draft.updatedAt} />
+                      <label className="inline-flex items-center gap-2 rounded-md border border-input px-3 text-sm cursor-pointer h-10 w-fit">
+                        Upload Offer Image
+                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => { try { setUploading(true); const image = await uploadSingleImage(e.target.files, uploadImages); if (image) setDraft((prev: any) => ({ ...prev, whatWeOffer: prev.whatWeOffer.map((item: any, itemIndex: number) => itemIndex === index ? { ...item, image, updatedAt: Date.now() } : item) })); } catch (error: any) { toast.error(error?.message || 'Offer image upload failed'); } finally { setUploading(false); e.target.value = ''; } }} />
+                      </label>
                     </div>
                   ))}
                 </div>
@@ -371,18 +371,14 @@ export function PlatformServicePage({
                   <div className="flex items-center justify-between"><Label>Equipment / Inclusions</Label><Button type="button" variant="outline" onClick={() => setDraft((prev: any) => ({ ...prev, equipmentCategories: [...(prev.equipmentCategories || []), { name: '', image: null, items: [] }] }))}><Plus className="h-4 w-4 mr-1" />Add</Button></div>
                   {(draft.equipmentCategories || []).map((category: any, index: number) => (
                     <div key={index} className="rounded-xl border border-[#efe7db] p-4 space-y-3">
-                      <div className="flex justify-between items-center">
-                        <p className="text-sm font-medium text-[#221819]">Category {index + 1}</p>
-                        <Button type="button" variant="outline" onClick={() => setDraft((prev: any) => ({ ...prev, equipmentCategories: prev.equipmentCategories.filter((_: any, itemIndex: number) => itemIndex !== index) }))}><Trash2 className="h-4 w-4" /></Button>
-                      </div>
+                      <div className="flex justify-end"><Button type="button" variant="outline" onClick={() => setDraft((prev: any) => ({ ...prev, equipmentCategories: prev.equipmentCategories.filter((_: any, itemIndex: number) => itemIndex !== index), updatedAt: Date.now() }))}><Trash2 className="h-4 w-4" /></Button></div>
                       <Input value={category?.name || ''} placeholder="Category name" onChange={(e) => setDraft((prev: any) => ({ ...prev, equipmentCategories: prev.equipmentCategories.map((item: any, itemIndex: number) => itemIndex === index ? { ...item, name: e.target.value } : item) }))} />
-                      <div className="flex flex-wrap gap-2">
-                        <label className="inline-flex items-center justify-center rounded-md border border-input px-3 py-2 text-sm cursor-pointer w-fit">
-                          Upload Category Image
-                          <input type="file" accept="image/*" className="hidden" onChange={async (e) => { try { setUploading(true); const image = await uploadSingleImage(e.target.files, uploadImages); if (image) setDraft((prev: any) => ({ ...prev, equipmentCategories: prev.equipmentCategories.map((item: any, itemIndex: number) => itemIndex === index ? { ...item, image } : item) })); } catch (error: any) { toast.error(error?.message || 'Category image upload failed'); } finally { setUploading(false); e.target.value = ''; } }} />
-                        </label>
-                        <Button type="button" variant="outline" onClick={() => setDraft((prev: any) => ({ ...prev, equipmentCategories: prev.equipmentCategories.map((item: any, itemIndex: number) => itemIndex === index ? { ...item, image: null } : item) }))}>Remove Category Image</Button>
-                      </div>
+                      <EditorImagePreview url={category?.image?.url} alt={category?.name || `Category ${index + 1}`} version={draft.updatedAt} />
+                      <label className="inline-flex items-center gap-2 rounded-md border border-input px-3 text-sm cursor-pointer h-10 w-fit">
+                        Upload Category Image
+                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => { try { setUploading(true); const image = await uploadSingleImage(e.target.files, uploadImages); if (image) setDraft((prev: any) => ({ ...prev, equipmentCategories: prev.equipmentCategories.map((item: any, itemIndex: number) => itemIndex === index ? { ...item, image, updatedAt: Date.now() } : item) })); } catch (error: any) { toast.error(error?.message || 'Category image upload failed'); } finally { setUploading(false); e.target.value = ''; } }} />
+                      </label>
+                      <Button type="button" variant="outline" onClick={() => setDraft((prev: any) => ({ ...prev, equipmentCategories: prev.equipmentCategories.map((item: any, itemIndex: number) => itemIndex === index ? { ...item, image: null, updatedAt: Date.now() } : item) }))}>Remove Category Image</Button>
                       <Textarea rows={4} value={(category?.items || []).join('\n')} placeholder="One item per line" onChange={(e) => setDraft((prev: any) => ({ ...prev, equipmentCategories: prev.equipmentCategories.map((item: any, itemIndex: number) => itemIndex === index ? { ...item, items: e.target.value.split('\n').map((row) => row.trim()).filter(Boolean) } : item) }))} />
                     </div>
                   ))}
@@ -415,7 +411,7 @@ export function PlatformServicePage({
 
       <section className="relative overflow-hidden bg-[#171111]">
         <div className="absolute inset-0 bg-gradient-to-br from-[#1b1213] via-[#2f1f21] to-[#0d0b0b]" />
-        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: `url("${effectiveConfig.heroImage?.url}")`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: `url("${getVersionedUrl(effectiveConfig.heroImage?.url, effectiveConfig.updatedAt)}")`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
         <div className="absolute inset-0 bg-black/45" />
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-20 md:py-28">
           <Badge className="mb-5 bg-[#a73f2b]/18 text-[#E8CA72] border-[#a73f2b]/25">{badgeText}</Badge>
@@ -428,8 +424,27 @@ export function PlatformServicePage({
           {!!effectiveConfig.perfectFor?.length && <div className="mt-7 flex flex-wrap gap-2">{effectiveConfig.perfectFor.map((item: string, index: number) => <span key={index} className="rounded-full border border-white/12 bg-white/6 px-3 py-1.5 text-sm text-white/85">{item}</span>)}</div>}
           <div className="mt-9"><a href="#pricing" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#a73f2b] to-[#b30452] hover:brightness-110 hover:shadow-[0px_6px_20px_rgba(179,4,82,0.35)] px-8 py-4 text-white font-semibold">Explore Pricing <ArrowRight className="w-5 h-5" /></a></div>
           <div className="mt-10 grid md:grid-cols-3 gap-4">
-            {effectiveConfig.heroImage?.url ? <img src={effectiveConfig.heroImage.url} alt={effectiveConfig.title} className="md:col-span-2 h-72 md:h-96 w-full object-cover rounded-[24px] border border-white/10" /> : <div className="md:col-span-2 h-72 md:h-96 rounded-[24px] border border-white/10 bg-[linear-gradient(135deg,#2b1b1e,#120d0d)]" />}
-            <div className="grid grid-cols-2 md:grid-cols-1 gap-4">{(effectiveConfig.galleryImages || []).slice(0, 2).map((image: any, index: number) => <img key={index} src={image.url} alt={`Preview ${index + 1}`} className="h-32 md:h-[188px] w-full object-cover rounded-[20px] border border-white/10" />)}</div>
+            {effectiveConfig.heroImage?.url ? (
+              <LightboxImage 
+                src={getVersionedUrl(effectiveConfig.heroImage.url, effectiveConfig.updatedAt)} 
+                alt={effectiveConfig.title} 
+                className="md:col-span-2 h-72 md:h-96 w-full rounded-[24px] border border-white/10" 
+                aspectRatio="none"
+              />
+            ) : (
+              <div className="md:col-span-2 h-72 md:h-96 rounded-[24px] border border-white/10 bg-[linear-gradient(135deg,#2b1b1e,#120d0d)]" />
+            )}
+            <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
+              {(effectiveConfig.galleryImages || []).slice(0, 2).map((image: any, index: number) => (
+                <LightboxImage 
+                  key={index} 
+                  src={getVersionedUrl(image.url, effectiveConfig.updatedAt)} 
+                  alt={`Preview ${index + 1}`} 
+                  className="h-32 md:h-[188px] w-full rounded-[20px] border border-white/10" 
+                  aspectRatio="none"
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -442,30 +457,88 @@ export function PlatformServicePage({
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5">
               {effectiveConfig.galleryImages.map((image: any, index: number) => (
-                <motion.div
+                <LightboxImage
                   key={index}
-                  whileHover={{ translateY: -4 }}
-                  className="bg-white rounded-[14px] overflow-hidden shadow-[0_6px_20px_rgba(0,0,0,0.08)] transition-all duration-300"
-                >
-                  <div className="aspect-[4/3] overflow-hidden rounded-[12px] m-1">
-                    <img
-                      src={image.url}
-                      alt={`Gallery ${index + 1}`}
-                      className="w-full h-[220px] object-cover transition-transform duration-500 hover:scale-105"
-                    />
-                  </div>
-                </motion.div>
+                  src={getVersionedUrl(image.url, effectiveConfig.updatedAt)}
+                  alt={`Gallery ${index + 1}`}
+                  className="rounded-[14px] overflow-hidden shadow-[0_6px_20px_rgba(0,0,0,0.08)]"
+                  aspectRatio="aspect-[4/3]"
+                />
               ))}
             </div>
           </div>
         </section>
       )}
 
-      {!!effectiveConfig.whatWeOffer?.length && <section className="py-16 bg-white"><div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8"><h2 className="text-4xl font-light text-[#221819] text-center mb-10" style={{ fontFamily: 'Playfair Display, serif' }}>What We Offer</h2><div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">{effectiveConfig.whatWeOffer.map((offer: any, index: number) => <div key={index} className="overflow-hidden rounded-[24px] border border-[#e7dfd1] bg-[#fffdfa]">{offer?.image?.url ? <img src={offer.image.url} alt={offer.title} className="h-52 w-full object-cover" /> : <div className="h-52 bg-[linear-gradient(135deg,#f4ebdf,#fbf7f0)]" />}<div className="p-5"><h3 className="text-lg font-semibold text-[#221819]">{offer.title}</h3><p className="mt-2 text-sm text-gray-600 leading-6">{offer.description}</p></div></div>)}</div></div></section>}
+      {!!effectiveConfig.whatWeOffer?.length && (
+        <section className="py-16 bg-white">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-4xl font-light text-[#221819] text-center mb-10" style={{ fontFamily: 'Playfair Display, serif' }}>What We Offer</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {effectiveConfig.whatWeOffer.map((offer: any, index: number) => (
+                <div key={index} className="overflow-hidden rounded-[24px] border border-[#e7dfd1] bg-[#fffdfa]">
+                  {offer?.image?.url ? (
+                    <LightboxImage 
+                      src={getVersionedUrl(offer.image.url, effectiveConfig.updatedAt)} 
+                      alt={offer.title} 
+                      className="h-52 w-full" 
+                      aspectRatio="none"
+                    />
+                  ) : (
+                    <div className="h-52 bg-[linear-gradient(135deg,#f4ebdf,#fbf7f0)]" />
+                  )}
+                  <div className="p-5">
+                    <h3 className="text-lg font-semibold text-[#221819]">{offer.title}</h3>
+                    <p className="mt-2 text-sm text-gray-600 leading-6">{offer.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {!!effectiveConfig.pricingOptions?.length && <section id="pricing" className="py-14 bg-[#fbf7f0]"><div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8"><h2 className="text-4xl font-light text-[#221819] text-center mb-10" style={{ fontFamily: 'Playfair Display, serif' }}>Pricing Options</h2><div className={`grid gap-6 ${effectiveConfig.pricingOptions.length > 1 ? 'md:grid-cols-2' : 'max-w-xl mx-auto'}`}>{effectiveConfig.pricingOptions.map((option: any, index: number) => <div key={option.id || index} className={`rounded-[24px] border p-6 ${index === 0 ? 'bg-[#2d1c1f] border-[#5b4349] text-white' : 'bg-white border-[#e7dfd1] text-[#221819]'}`}><p className={`text-xs uppercase tracking-[0.28em] ${index === 0 ? 'text-[#d8c288]' : 'text-[#8f7f69]'}`}>per {option.billingUnit}</p><h3 className="mt-3 text-2xl font-semibold">{option.name}</h3><p className="mt-4 text-3xl font-semibold">Rs {Number(option.price || 0).toLocaleString()}</p><p className={`mt-3 text-sm leading-6 ${index === 0 ? 'text-white/75' : 'text-gray-600'}`}>{option.description}</p></div>)}</div></div></section>}
 
-      {!!effectiveConfig.equipmentCategories?.length && <section id="equipment" className="py-16 bg-white"><div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8"><h2 className="text-4xl font-light text-[#221819] text-center mb-10" style={{ fontFamily: 'Playfair Display, serif' }}>Inclusions</h2><div className="max-w-4xl mx-auto space-y-4">{effectiveConfig.equipmentCategories.map((category: any, index: number) => <div key={index} className="overflow-hidden rounded-xl border border-[#e7dfd1] bg-white"><button type="button" onClick={() => setExpandedCategory(expandedCategory === index ? null : index)} className="w-full flex justify-between items-center p-4 bg-[#faf6ef]"><div className="flex items-center gap-3 text-left">{category?.image?.url ? <img src={category.image.url} alt={category.name} className="h-12 w-12 rounded object-cover" /> : null}<span className="font-medium text-[#221819]">{category.name}</span></div>{expandedCategory === index ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}</button>{expandedCategory === index && <ul className="p-4 grid md:grid-cols-2 gap-2">{(category.items || []).map((item: string, itemIndex: number) => <li key={itemIndex} className="text-sm flex items-start gap-2"><CheckCircle className="h-4 w-4 text-[#a73f2b] mt-0.5" />{item}</li>)}</ul>}</div>)}</div></div></section>}
+      {!!effectiveConfig.equipmentCategories?.length && (
+        <section id="equipment" className="py-16 bg-white">
+          <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-4xl font-light text-[#221819] text-center mb-10" style={{ fontFamily: 'Playfair Display, serif' }}>Inclusions</h2>
+            <div className="max-w-4xl mx-auto space-y-4">
+              {effectiveConfig.equipmentCategories.map((category: any, index: number) => (
+                <div key={index} className="overflow-hidden rounded-xl border border-[#e7dfd1] bg-white">
+                  <button type="button" onClick={() => setExpandedCategory(expandedCategory === index ? null : index)} className="w-full flex justify-between items-center p-4 bg-[#faf6ef]">
+                    <div className="flex items-center gap-3 text-left">
+                      {category?.image?.url ? (
+                        <div className="h-12 w-12 rounded overflow-hidden">
+                          <LightboxImage 
+                            src={getVersionedUrl(category.image.url, effectiveConfig.updatedAt)} 
+                            alt={category.name} 
+                            className="h-full w-full" 
+                            aspectRatio="none"
+                          />
+                        </div>
+                      ) : null}
+                      <span className="font-medium text-[#221819]">{category.name}</span>
+                    </div>
+                    {expandedCategory === index ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                  </button>
+                  {expandedCategory === index && (
+                    <ul className="p-4 grid md:grid-cols-2 gap-2">
+                      {(category.items || []).map((item: string, itemIndex: number) => (
+                        <li key={itemIndex} className="text-sm flex items-start gap-2">
+                          <CheckCircle className="h-4 w-4 text-[#a73f2b] mt-0.5" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section id="booking" className="py-16 bg-gradient-to-br from-gray-900 via-gray-800 to-black">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
