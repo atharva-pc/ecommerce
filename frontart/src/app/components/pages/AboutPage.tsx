@@ -11,7 +11,6 @@ export function AboutPage() {
     { label: 'Artists', value: '500+', icon: Users },
     { label: 'Artworks Sold', value: '10,000+', icon: TrendingUp },
     { label: 'Happy Customers', value: '5,000+', icon: Heart },
-    { label: 'Years of Excellence', value: '5+', icon: Award },
   ];
 
   const values = [
