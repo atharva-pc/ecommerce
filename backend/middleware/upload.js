@@ -1,4 +1,4 @@
-import { uploadProfile, uploadArtworks, uploadArtistApplication, uploadHomeCategoryImages, deleteImage, deleteMultipleImages, cloudinary } from "../config/cloudinary.js";
+import { uploadProfile, uploadArtworks, uploadArtistApplication, uploadHomeCategoryImages, uploadHomeSlides, deleteImage, deleteMultipleImages, cloudinary } from "../config/cloudinary.js";
 import multer from "multer";
 
 // Memory storage for manual Cloudinary upload
@@ -453,6 +453,39 @@ export const uploadHomeCategoryImage = (req, res, next) => {
             return res.status(400).json({
                 success: false,
                 message: err.message || "Error uploading category image"
+            });
+        }
+
+        if (req.file) {
+            req.uploadedFile = {
+                url: req.file.path || req.file.secure_url,
+                publicId: req.file.filename || req.file.public_id
+            };
+        }
+
+        next();
+    });
+};
+
+/**
+ * Middleware to upload single home slide image
+ * Field name: "image"
+ */
+export const uploadHomeSlideImage = (req, res, next) => {
+    const upload = uploadHomeSlides.single("image");
+
+    upload(req, res, (err) => {
+        if (err) {
+            if (err.code === "LIMIT_FILE_SIZE") {
+                return res.status(400).json({
+                    success: false,
+                    message: "Image must be less than 10MB"
+                });
+            }
+
+            return res.status(400).json({
+                success: false,
+                message: err.message || "Error uploading slide image"
             });
         }
 

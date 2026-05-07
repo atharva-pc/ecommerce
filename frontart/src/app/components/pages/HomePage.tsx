@@ -6,7 +6,8 @@ import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
 import { featuredArtists as mockFeaturedArtists } from '../../data/mockData';
-import { getProducts, getFeaturedArtists, getPublicFeaturedArtworks, getHomeCategories, adminGetAllHomeCategories, adminUpsertHomeCategory, adminDeleteHomeCategory, adminUploadHomeCategoryImage } from '../../utils/api';
+import { getProducts, getFeaturedArtists, getPublicFeaturedArtworks, getHomeCategories, adminGetAllHomeCategories, adminUpsertHomeCategory, adminDeleteHomeCategory, adminUploadHomeCategoryImage, getHomeSlides } from '../../utils/api';
+import { DEFAULT_SLIDES } from '../../data/sliderData';
 import { toast } from 'sonner';
 import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
@@ -51,6 +52,7 @@ const DEFAULT_CATEGORIES = [
     isActive: true
   }
 ];
+
 
 const getVersionedUrl = (url?: string, version?: string | number) => {
   if (!url) return '';
@@ -99,6 +101,9 @@ export function HomePage() {
   const { user } = useApp();
   const isAdmin = user?.role === 'admin';
 
+  // Slider States
+  const [heroSlides, setHeroSlides] = useState<any[]>(DEFAULT_SLIDES);
+
   // Fetch real products for the featured collection
   useEffect(() => {
     const fetchFeatured = async () => {
@@ -137,6 +142,21 @@ export function HomePage() {
 
   useEffect(() => {
     fetchHomeCategories();
+  }, []);
+
+  // Fetch dynamic home slides
+  useEffect(() => {
+    const fetchSlides = async () => {
+      try {
+        const res = await getHomeSlides();
+        if (res.success && res.data && res.data.length > 0) {
+          setHeroSlides(res.data);
+        }
+      } catch (e) {
+        console.error('Failed to fetch home slides:', e);
+      }
+    };
+    fetchSlides();
   }, []);
 
   // Fetch dynamic featured artists
@@ -249,28 +269,17 @@ export function HomePage() {
     }
   };
 
-  const heroSlides = [
-
-    { id: 'slide-1', image: "https://res.cloudinary.com/dylofrbje/image/upload/v1776247101/d8d54a62-236d-4746-9c6a-0e542af05016_zmuvmq.jpg", title: 'Discover Indian Art', artist: 'Curated Collection' },
-    { id: 'slide-2', image: "https://res.cloudinary.com/dylofrbje/image/upload/v1776247256/f73f9125-17b2-4154-b429-b162faf10aef_wpi4en.jpg", title: 'Celebrate Creativity', artist: 'Master Works' },
-    { id: 'slide-3', image: "https://res.cloudinary.com/dylofrbje/image/upload/v1776244370/18swapnil_sakhare_23000_fvcvnk.jpg", title: 'Timeless Beauty', artist: 'Heritage Series' },
-    { id: 'slide-4', image: "https://res.cloudinary.com/dylofrbje/image/upload/v1776244370/18swapnil_sakhare_15000_wzzbfm.jpg", title: 'Modern Expressions', artist: 'Contemporary Art' },
-    { id: 'slide-5', image: "https://res.cloudinary.com/dylofrbje/image/upload/v1776247297/3f374b74-85bf-47ad-820c-deae72ba5281_plwkpg.jpg", title: 'Artistic Excellence', artist: 'Featured Artists' },
-    { id: 'slide-6', image: "https://res.cloudinary.com/dylofrbje/image/upload/v1776249255/mini_obptwk.jpg", title: 'Artistic Excellence', artist: 'Featured Artists' },
-    { id: 'slide-7', image: "https://res.cloudinary.com/dylofrbje/image/upload/v1776246194/20swapnil_sakhare_13000_hmytas.jpg", title: 'Artistic Excellence', artist: 'Featured Artists' },
-    { id: 'slide-8', image: "https://res.cloudinary.com/dylofrbje/image/upload/v1776246243/9swapnil_sakhare_23000_uyj9pd.jpg", title: 'Artistic Excellence', artist: 'Featured Artists' },
-    { id: 'slide-9', image: "https://res.cloudinary.com/dylofrbje/image/upload/v1776248655/2291a641-ae9d-4fbe-addd-67ad990673a9_ybg5me.jpg", title: 'Artistic Excellence', artist: 'Featured Artists' },
-    { id: 'slide-10', image: "https://res.cloudinary.com/dylofrbje/image/upload/v1776246529/9f434b83-1050-44e4-a339-b17397be0609_u5n7oh.jpg", title: 'Artistic Excellence', artist: 'Featured Artists' },
-    { id: 'slide-11', image: "https://res.cloudinary.com/dylofrbje/image/upload/v1776248827/f7b53c3a-4e6d-4d5e-ab27-674fe7829882_dsinme.jpg", title: 'Artistic Excellence', artist: 'Featured Artists' },
-    { id: 'slide-12', image: "https://res.cloudinary.com/dylofrbje/image/upload/v1776249066/172aee23-d050-4729-beac-07e6847eeb0a_ylfeed.jpg", title: 'Artistic Excellence', artist: 'Featured Artists' },
-  ];
 
   useEffect(() => {
+    if (heroSlides.length === 0) return;
+    if (currentSlide >= heroSlides.length) {
+      setCurrentSlide(0);
+    }
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [heroSlides.length, currentSlide]);
 
 
 
@@ -336,7 +345,7 @@ export function HomePage() {
               className="absolute inset-0"
             >
               <img
-                src={heroSlides[currentSlide].image}
+                src={heroSlides[currentSlide].image?.url || heroSlides[currentSlide].image}
                 alt={heroSlides[currentSlide].title}
                 className="w-full h-full object-cover"
               />
@@ -417,6 +426,19 @@ export function HomePage() {
                   Register Now
                 </Button>
               </motion.div>
+
+              {isAdmin && (
+                <motion.div variants={fadeIn} className="mt-8">
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate('/dashboard')}
+                    className="bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20"
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Manage Slider Content
+                  </Button>
+                </motion.div>
+              )}
             </motion.div>
           </div>
         </div>

@@ -150,3 +150,10 @@ export function registerForWorkshop(workshopId: string, registrationData: any): 
 export function getMyRegistrations(): Promise<any>;
 export function cancelMyRegistration(registrationId: string): Promise<any>;
 
+
+// Home Slides
+export function getHomeSlides(): Promise<any>;
+export function adminGetAllHomeSlides(): Promise<any>;
+export function adminUpsertHomeSlide(slideData: any): Promise<any>;
+export function adminDeleteHomeSlide(id: string): Promise<any>;
+export function adminUploadHomeSlideImage(formData: FormData): Promise<any>;

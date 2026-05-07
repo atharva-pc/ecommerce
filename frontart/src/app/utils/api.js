@@ -742,3 +742,25 @@ export const adminUploadHomeCategoryImage = (formData) => apiRequest('/home-cate
   method: 'POST',
   body: formData
 });
+
+// ===========================================
+// HOME SLIDE APIs
+// ===========================================
+
+export const getHomeSlides = () => apiRequest('/home-slides');
+
+export const adminGetAllHomeSlides = () => apiRequest('/home-slides/admin/all');
+
+export const adminUpsertHomeSlide = (slideData) => apiRequest('/home-slides/admin/upsert', {
+  method: 'POST',
+  body: JSON.stringify(slideData)
+});
+
+export const adminDeleteHomeSlide = (id) => apiRequest(`/home-slides/admin/${id}`, {
+  method: 'DELETE'
+});
+
+export const adminUploadHomeSlideImage = (formData) => apiRequest('/home-slides/admin/upload', {
+  method: 'POST',
+  body: formData
+});
