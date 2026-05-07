@@ -63,6 +63,16 @@ const getVersionedUrl = (url?: string, version?: string | number) => {
   return url;
 };
 
+const getOptimizedUrl = (url: string, width = 600) => {
+  if (!url || !url.includes('cloudinary')) return url;
+  
+  // Replace /upload/ with /upload/f_auto,q_auto,w_{width}/
+  if (url.includes('/upload/')) {
+    return url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`);
+  }
+  return url;
+};
+
 const fadeIn = {
   hidden: { opacity: 0, y: 30 },
   visible: {
@@ -149,11 +159,35 @@ export function HomePage() {
     const fetchSlides = async () => {
       try {
         const res = await getHomeSlides();
-        if (res.success && res.data && res.data.length > 0) {
-          setHeroSlides(res.data);
+        if (res.success && Array.isArray(res.data)) {
+          // Create a combined list starting with defaults
+          const merged = [...DEFAULT_SLIDES].map((s, i) => ({ ...s, displayOrder: i, isActive: true }));
+          
+          // Overwrite with DB slides if they exist
+          // We use the admin's view (all slides) to know what to replace, 
+          // but we only show the ones that are active in the final list.
+          
+          // Wait, getHomeSlides only returns ACTIVE slides.
+          // So we should fill the "remaining" slots with defaults.
+          
+          const allDbSlides = res.data;
+          const finalSlides = [...merged];
+          
+          allDbSlides.forEach((dbSlide: any) => {
+            const order = dbSlide.displayOrder;
+            if (order !== undefined && order < finalSlides.length) {
+                finalSlides[order] = dbSlide;
+            } else {
+                finalSlides.push(dbSlide);
+            }
+          });
+
+          // Only keep active ones
+          setHeroSlides(finalSlides.filter(s => s.isActive));
         }
       } catch (e) {
         console.error('Failed to fetch home slides:', e);
+        setHeroSlides(DEFAULT_SLIDES);
       }
     };
     fetchSlides();
@@ -336,20 +370,31 @@ export function HomePage() {
         {/* Background Layer with Slider */}
         <div className="absolute inset-0 z-0">
           <AnimatePresence mode="wait">
-            <motion.div
-              key={currentSlide}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1.5, ease: "easeInOut" }}
-              className="absolute inset-0"
-            >
-              <img
-                src={heroSlides[currentSlide].image?.url || heroSlides[currentSlide].image}
-                alt={heroSlides[currentSlide].title}
-                className="w-full h-full object-cover"
-              />
-            </motion.div>
+            {heroSlides.length > 0 && heroSlides[currentSlide] ? (
+              <motion.div
+                key={currentSlide}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.5, ease: "easeInOut" }}
+                className="absolute inset-0"
+              >
+                <img
+                  src={getOptimizedUrl(
+                    (typeof heroSlides[currentSlide].image === 'string' 
+                      ? heroSlides[currentSlide].image 
+                      : heroSlides[currentSlide].image?.url) || '', 
+                    1600
+                  )}
+                  alt={heroSlides[currentSlide].title}
+                  className="w-full h-full object-cover"
+                />
+              </motion.div>
+            ) : (
+              <div className="absolute inset-0 bg-neutral-900 flex items-center justify-center">
+                <p className="text-white/20 italic">No slides available</p>
+              </div>
+            )}
           </AnimatePresence>
           {/* Dark overlay for better text visibility */}
           <div className="absolute inset-0 bg-black/40 z-1" />
@@ -444,35 +489,39 @@ export function HomePage() {
         </div>
 
         {/* Slider Navigation Arrows */}
-        <button
-          onClick={() => setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)}
-          className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-20 bg-white/15 backdrop-blur-md hover:bg-white/30 text-white rounded-full p-2 sm:p-3 transition-all duration-300 border border-white/20"
-          aria-label="Previous slide"
-        >
-          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
-        </button>
-        <button
-          onClick={() => setCurrentSlide((prev) => (prev + 1) % heroSlides.length)}
-          className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-20 bg-white/15 backdrop-blur-md hover:bg-white/30 text-white rounded-full p-2 sm:p-3 transition-all duration-300 border border-white/20"
-          aria-label="Next slide"
-        >
-          <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
-        </button>
-
-        {/* Slide Indicator Dots */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-          {heroSlides.map((_, index) => (
+        {heroSlides.length > 1 && (
+          <>
             <button
-              key={index}
-              onClick={() => setCurrentSlide(index)}
-              className={`rounded-full transition-all duration-300 ${index === currentSlide
-                ? 'w-8 h-2.5 bg-white'
-                : 'w-2.5 h-2.5 bg-white/40 hover:bg-white/70'
-                }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
-        </div>
+              onClick={() => setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)}
+              className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-20 bg-white/15 backdrop-blur-md hover:bg-white/30 text-white rounded-full p-2 sm:p-3 transition-all duration-300 border border-white/20"
+              aria-label="Previous slide"
+            >
+              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+            <button
+              onClick={() => setCurrentSlide((prev) => (prev + 1) % heroSlides.length)}
+              className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-20 bg-white/15 backdrop-blur-md hover:bg-white/30 text-white rounded-full p-2 sm:p-3 transition-all duration-300 border border-white/20"
+              aria-label="Next slide"
+            >
+              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+
+            {/* Slide Indicator Dots */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+              {heroSlides.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentSlide(index)}
+                  className={`rounded-full transition-all duration-300 ${index === currentSlide
+                    ? 'w-8 h-2.5 bg-white'
+                    : 'w-2.5 h-2.5 bg-white/40 hover:bg-white/70'
+                    }`}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
+          </>
+        )}
       </section>
 
       {SHOW_STATS_AND_FINAL_CTA && (
@@ -550,7 +599,7 @@ export function HomePage() {
                 >
                   <div className="relative aspect-[3/4] overflow-hidden bg-white mb-4 rounded-[12px] shadow-sm hover:shadow-xl transition-shadow duration-300 border border-gray-100 flex items-center justify-center">
                     <img
-                      src={getVersionedUrl(artwork.image, artwork.updatedAt)}
+                      src={getOptimizedUrl(getVersionedUrl(artwork.image, artwork.updatedAt), 500)}
                       alt={artwork.title}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />

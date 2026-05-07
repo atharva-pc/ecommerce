@@ -263,6 +263,7 @@ const productSchema = new mongoose.Schema(
 
 // Indexes
 productSchema.index({ title: "text", displayName: "text", description: "text", tags: "text" });
+productSchema.index({ status: 1, "verification.status": 1, createdAt: -1 });
 productSchema.index({ category: 1, status: 1 });
 productSchema.index({ price: 1 });
 productSchema.index({ createdAt: -1 });

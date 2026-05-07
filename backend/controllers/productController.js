@@ -162,17 +162,19 @@ export const getProducts = async (req, res) => {
 
         const [products, total] = await Promise.all([
             Product.find(query)
+                .select("title slug artist images price comparePrice category verification submissionChannel status rating createdAt")
                 .populate("artist", "username avatar")
                 .sort(sortOptions)
                 .skip(skip)
-                .limit(Number(limit)),
+                .limit(Number(limit))
+                .lean({ virtuals: true }),
             Product.countDocuments(query)
         ]);
 
         return res.status(200).json({
             success: true,
             data: {
-                products: products.map(p => p.toSafeObject()),
+                products: products, // With .lean({ virtuals: true }), we don't need toSafeObject()
                 pagination: {
                     total,
                     page: Number(page),

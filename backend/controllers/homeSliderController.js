@@ -7,10 +7,12 @@ import HomeSlide from '../models/HomeSlide.js';
  */
 export const getHomeSlides = async (req, res) => {
   try {
-    const slides = await HomeSlide.find({ isActive: true }).sort({ displayOrder: 1 });
+    const slides = await HomeSlide.find().sort({ displayOrder: 1 });
+    const totalCount = await HomeSlide.countDocuments();
     res.status(200).json({
       success: true,
-      data: slides
+      data: slides,
+      totalCount
     });
   } catch (error) {
     console.error('Get home slides error:', error);
