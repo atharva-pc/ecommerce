@@ -565,14 +565,14 @@ export function SellArtPage() {
             {/* Artistic Header Section */}
             <div className="relative h-[450px] bg-[#0A0A0A] overflow-hidden">
                 <div className="absolute inset-0 z-0">
-                    <img 
-                        src="https://images.unsplash.com/photo-1549490349-8643362247b5?q=80&w=2071&auto=format&fit=crop" 
-                        alt="Art background" 
+                    <img
+                        src="https://images.unsplash.com/photo-1549490349-8643362247b5?q=80&w=2071&auto=format&fit=crop"
+                        alt="Art background"
                         className="w-full h-full object-cover opacity-40"
                     />
                     <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-[#F7F8FA]" />
                 </div>
-                
+
                 <div className="relative z-10 max-w-5xl mx-auto px-6 h-full flex flex-col items-center justify-center text-center">
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
@@ -603,10 +603,10 @@ export function SellArtPage() {
                             Complete the form below. Our team reviews every portfolio to ensure quality.
                         </CardDescription>
                     </CardHeader>
-                    
+
                     <CardContent className="p-10 space-y-12">
                         <form onSubmit={handleSubmit} className="space-y-12">
-                            
+
                             {/* Section 1: Basic Information */}
                             <div className="space-y-8">
                                 <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
@@ -676,7 +676,7 @@ export function SellArtPage() {
                                             id="secondaryPhone"
                                             type="tel"
                                             required
-                                            placeholder="9876543210"
+                                            placeholder="9156845315"
                                             value={formData.secondaryPhone}
                                             onChange={e => setFormData({ ...formData, secondaryPhone: e.target.value })}
                                             className="h-14 bg-white border-gray-200 focus:border-[#a73f2b] focus:ring-[#a73f2b]/10 rounded-2xl px-5 transition-all"
@@ -732,7 +732,7 @@ export function SellArtPage() {
                                         />
                                     </div>
                                 </div>
-                                
+
                                 {/* Bio */}
                                 <div className="space-y-4">
                                     <Label htmlFor="bio" className="text-sm font-semibold text-gray-700">Artistic Journey & Statement *</Label>
@@ -852,8 +852,8 @@ export function SellArtPage() {
 
                                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
                                     {artworkPreviews.map((preview, index) => (
-                                        <motion.div 
-                                            key={index} 
+                                        <motion.div
+                                            key={index}
                                             initial={{ opacity: 0, scale: 0.95 }}
                                             animate={{ opacity: 1, scale: 1 }}
                                             className="relative group"
@@ -926,7 +926,7 @@ export function SellArtPage() {
                                         'Submit Application'
                                     )}
                                 </Button>
-                                
+
                                 <p className="text-sm text-gray-500">
                                     By submitting, you agree to ArtVPP's{' '}
                                     <Link to="/terms" className="text-[#a73f2b] font-bold hover:underline">Vendor Terms & Conditions</Link>.

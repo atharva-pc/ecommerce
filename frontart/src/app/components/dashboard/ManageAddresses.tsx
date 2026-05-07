@@ -238,7 +238,7 @@ export function ManageAddresses() {
                             </div>
                             <div>
                                 <Label>Phone Number *</Label>
-                                <Input value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="+91 98765 43210" className="mt-1" />
+                                <Input value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="+91 9156845315" className="mt-1" />
                             </div>
                             <div>
                                 <Label>Street Address *</Label>

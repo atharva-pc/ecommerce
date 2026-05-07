@@ -166,7 +166,7 @@ export function ProfileInformation() {
                                 value={formData.phone}
                                 disabled={!isEditing}
                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                placeholder="+91 98765 43210"
+                                placeholder="9156845315"
                             />
                         </div>
                     </div>

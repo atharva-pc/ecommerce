@@ -302,7 +302,7 @@ export function HelpPage() {
                     <Mail className="w-10 h-10 text-[#a73f2b] mx-auto mb-3" />
                     <h3 className="font-semibold mb-2">Email Support</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      support@artvpp.com
+                      artvppcoeteam@gmail.com
                     </p>
                     <p className="text-xs text-gray-500">Response in 24 hours</p>
                   </CardContent>
@@ -313,7 +313,7 @@ export function HelpPage() {
                     <Phone className="w-10 h-10 text-[#a73f2b] mx-auto mb-3" />
                     <h3 className="font-semibold mb-2">Phone Support</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      +91 98765 43210
+                      9156845315
                     </p>
                     <p className="text-xs text-gray-500">Mon-Sat, 10 AM - 6 PM</p>
                   </CardContent>

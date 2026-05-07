@@ -227,8 +227,8 @@ export function PrivacyPage() {
                 </p>
                 <div className="bg-gray-50 p-6 rounded-lg space-y-2">
                   <p className="text-gray-700 font-semibold">Privacy Team - Artvpp</p>
-                  <p className="text-gray-700">Email: privacy@artvpp.com</p>
-                  <p className="text-gray-700">Phone: +91 98765 43210</p>
+                  <p className="text-gray-700">Email: artvppcoeteam@gmail.com</p>
+                  <p className="text-gray-700">Phone: 9156845315</p>
                   <p className="text-gray-700">Address: 123 Art Street, Creative District, Mumbai, India</p>
                 </div>
               </section>

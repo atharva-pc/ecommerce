@@ -514,7 +514,7 @@ export function EnhancedVendorDashboard({ onNavigate }: EnhancedVendorDashboardP
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" defaultValue="minal@artvpp.com" />
+                        <Input id="email" type="email" defaultValue="artvppcoeteam@gmail.com" />
                       </div>
                     </div>
                     <div className="space-y-2">

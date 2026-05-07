@@ -882,7 +882,7 @@ export const platformUsers = [
   {
     id: 'user-2',
     name: 'Dr. Minal Shinde',
-    email: 'minal@artvpp.com',
+    email: 'artvppcoeteam@gmail.com',
     role: 'vendor',
     joinDate: '2023-08-10',
     totalRevenue: 125000,
@@ -905,7 +905,7 @@ export const platformUsers = [
   {
     id: 'user-4',
     name: 'Prof. Vinod Mahabale',
-    email: 'vinod@artvpp.com',
+    email: 'artvppcoeteam@gmail.com',
     role: 'vendor',
     joinDate: '2023-06-05',
     totalRevenue: 98000,

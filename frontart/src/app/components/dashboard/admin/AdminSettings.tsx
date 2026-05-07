@@ -89,7 +89,7 @@ export function AdminSettings() {
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="supportEmail">Support Email</Label>
-                                    <Input id="supportEmail" defaultValue="support@artvpp.com" />
+                                    <Input id="supportEmail" defaultValue="artvppcoeteam@gmail.com" />
                                 </div>
                             </div>
                             <Separator />

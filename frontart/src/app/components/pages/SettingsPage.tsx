@@ -30,7 +30,7 @@ export function SettingsPage() {
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
     email: user?.email || '',
-    phone: '+91 98765 43210',
+    phone: '+91 9156845315',
     bio: 'Art enthusiast and collector',
     website: 'https://example.com',
     avatar: ''
@@ -42,7 +42,7 @@ export function SettingsPage() {
       id: 1,
       type: 'Home',
       name: 'John Doe',
-      phone: '+91 98765 43210',
+      phone: '+91 9156845315',
       address: '123 MG Road, Bangalore, Karnataka - 560001',
       isDefault: true
     },
@@ -50,7 +50,7 @@ export function SettingsPage() {
       id: 2,
       type: 'Office',
       name: 'John Doe',
-      phone: '+91 98765 43210',
+      phone: '+91 9156845315',
       address: '456 Brigade Road, Bangalore, Karnataka - 560025',
       isDefault: false
     }

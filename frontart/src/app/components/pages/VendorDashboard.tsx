@@ -236,7 +236,7 @@ export function VendorDashboard() {
                     </div>
                     <div>
                       <label className="text-sm font-medium">Email</label>
-                      <p className="text-gray-600">minal@artvpp.com</p>
+                      <p className="text-gray-600">artvppcoeteam@gmail.com</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium">Portfolio URL</label>

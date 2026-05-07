@@ -142,11 +142,11 @@ export function Footer() {
               <ul className="space-y-3 text-sm mb-5">
                 <li className="flex items-center gap-2">
                   <Mail className="w-5 h-5 flex-shrink-0 text-[#a73f2b]" />
-                  <span>hello@artvpp.com</span>
+                  <span>artvppcoeteam@gmail.com</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Phone className="w-5 h-5 flex-shrink-0 text-[#a73f2b]" />
-                  <span>+91 98765 43210</span>
+                  <span>9156845315</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <MapPin className="w-5 h-5 flex-shrink-0 text-[#a73f2b]" />

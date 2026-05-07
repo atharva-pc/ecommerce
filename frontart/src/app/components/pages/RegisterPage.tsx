@@ -133,7 +133,7 @@ export function RegisterPage() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
         </div>
-        
+
         <div className="relative z-10 text-center px-12">
           <motion.div
             initial={{ y: 20, opacity: 0 }}
@@ -141,7 +141,7 @@ export function RegisterPage() {
             transition={{ delay: 0.5, duration: 0.8 }}
           >
             <h1 className="text-6xl font-extrabold tracking-tight mb-6">
-              <span style={{ 
+              <span style={{
                 background: "linear-gradient(to right, #fdbc5aff, #fc5522ff, #f345c7ff)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
@@ -174,7 +174,7 @@ export function RegisterPage() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#b30452]/5 rounded-full blur-3xl -mr-32 -mt-32" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#a73f2b]/5 rounded-full blur-3xl -ml-32 -mb-32" />
 
-        <motion.div 
+        <motion.div
           initial={{ x: 20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
@@ -183,7 +183,7 @@ export function RegisterPage() {
           {/* Logo for Mobile */}
           <div className="lg:hidden text-center mb-10">
             <h1 className="text-4xl font-extrabold tracking-tight">
-              <span style={{ 
+              <span style={{
                 background: "linear-gradient(to right, #fdbc5aff, #fc5522ff, #f345c7ff)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
@@ -270,7 +270,7 @@ export function RegisterPage() {
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       required
                       className="pl-12 h-14 rounded-2xl border-gray-200 focus:border-[#b30452] focus:ring-[#b30452]/10 transition-all bg-white/50"
-                      placeholder="9876543210"
+                      placeholder="9156845315"
                     />
                   </div>
                 </div>

@@ -17,14 +17,14 @@ export function ContactPage() {
     {
       icon: Mail,
       title: 'Email Us',
-      details: 'support@artvpp.com',
+      details: 'artvppcoeteam@gmail.com',
       subdetails: 'We reply within 24 hours',
       color: 'from-blue-500 to-blue-600'
     },
     {
       icon: Phone,
       title: 'Call Us',
-      details: '+91 98765 43210',
+      details: '9156845315',
       subdetails: 'Mon-Sat, 10 AM - 6 PM IST',
       color: 'from-green-500 to-green-600'
     },
@@ -245,15 +245,15 @@ export function ContactPage() {
                       <Mail className="w-5 h-5 text-[#a73f2b] mt-0.5" />
                       <div>
                         <p className="font-medium text-gray-900">Email</p>
-                        <p className="text-sm text-gray-600">support@artvpp.com</p>
-                        <p className="text-sm text-gray-600">business@artvpp.com</p>
+                        <p className="text-sm text-gray-600">artvppcoeteam@gmail.com</p>
+                        <p className="text-sm text-gray-600">artvppcoeteam@gmail.com</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
                       <Phone className="w-5 h-5 text-[#a73f2b] mt-0.5" />
                       <div>
                         <p className="font-medium text-gray-900">Phone</p>
-                        <p className="text-sm text-gray-600">Customer Support: +91 98765 43210</p>
+                        <p className="text-sm text-gray-600">Customer Support: 9156845315</p>
                         <p className="text-sm text-gray-600">Vendor Support: +91 98765 43211</p>
                       </div>
                     </div>

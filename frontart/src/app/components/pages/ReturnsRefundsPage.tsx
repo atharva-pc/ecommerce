@@ -129,7 +129,7 @@ export function ReturnsRefundsPage() {
                                     Initiate Return Request
                                 </h3>
                                 <p className="text-gray-600">
-                                    Contact our support team via email at returns@artvpp.com or call us at +91-XXXX-XXXX.
+                                    Contact our support team via email at artvppcoeteam@gmail.com or call us at 9156845315.
                                     Provide your order number and reason for return.
                                 </p>
                             </div>
@@ -244,7 +244,7 @@ export function ReturnsRefundsPage() {
                             <Mail className="w-6 h-6 text-[#a73f2b] flex-shrink-0 mt-1" />
                             <div>
                                 <p className="font-semibold text-gray-900">Email</p>
-                                <p className="text-gray-600">returns@artvpp.com</p>
+                                <p className="text-gray-600">artvppcoeteam@gmail.com</p>
                                 <p className="text-sm text-gray-500 mt-1">Response within 24 hours</p>
                             </div>
                         </div>
@@ -252,7 +252,7 @@ export function ReturnsRefundsPage() {
                             <Phone className="w-6 h-6 text-[#a73f2b] flex-shrink-0 mt-1" />
                             <div>
                                 <p className="font-semibold text-gray-900">Phone</p>
-                                <p className="text-gray-600">+91-XXXX-XXXXXX</p>
+                                <p className="text-gray-600">9156845315</p>
                                 <p className="text-sm text-gray-500 mt-1">Mon-Sat, 10 AM - 6 PM IST</p>
                             </div>
                         </div>

@@ -268,7 +268,7 @@ export function CheckoutPage() {
                           <Input
                             id="phone"
                             type="tel"
-                            placeholder="+91 98765 43210"
+                            placeholder="9156845315"
                             value={shippingInfo.phone}
                             onChange={(e) => setShippingInfo({ ...shippingInfo, phone: e.target.value })}
                             required
