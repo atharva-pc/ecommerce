@@ -721,3 +721,24 @@ export const getPublicFeaturedArtworks = (id, name = '') => {
     return apiRequest(`/featured-artists/artists/${id}/public-featured-artworks${query}`);
 };
 
+// ===========================================
+// HOME CATEGORY APIs
+// ===========================================
+
+export const getHomeCategories = () => apiRequest('/home-categories');
+
+export const adminGetAllHomeCategories = () => apiRequest('/home-categories/admin/all');
+
+export const adminUpsertHomeCategory = (categoryData) => apiRequest('/home-categories/admin/upsert', {
+  method: 'POST',
+  body: JSON.stringify(categoryData)
+});
+
+export const adminDeleteHomeCategory = (id) => apiRequest(`/home-categories/admin/${id}`, {
+  method: 'DELETE'
+});
+
+export const adminUploadHomeCategoryImage = (formData) => apiRequest('/home-categories/admin/upload', {
+  method: 'POST',
+  body: formData
+});

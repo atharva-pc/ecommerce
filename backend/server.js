@@ -22,6 +22,7 @@ import notificationRoute from "./routes/notification.routes.js";
 import serviceRoute from "./routes/service.routes.js";
 import workshopRoute from "./routes/workshop.routes.js";
 import featuredArtistRoute from "./routes/featuredArtistRoutes.js";
+import homeCategoryRoute from "./routes/homeCategory.routes.js";
 
 // Import error handler middleware
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
@@ -201,6 +202,9 @@ app.use("/api/v1/workshops", workshopRoute);
 
 // Featured Artist routes
 app.use("/api/v1/featured-artists", featuredArtistRoute);
+
+// Home Category routes
+app.use("/api/v1/home-categories", homeCategoryRoute);
 
 // ===========================================
 // ERROR HANDLING

@@ -68,6 +68,7 @@ const productsStorage = generateStorage("artvpp/products");
 const servicesStorage = generateStorage("artvpp/services");
 const workshopsStorage = generateStorage("artvpp/workshops");
 const artistAppStorage = generateStorage("artvpp/artist-applications");
+const homeCategoriesStorage = generateStorage("artvpp/home-categories");
 
 // Memory storage fallback
 const memoryStorage = multer.memoryStorage();
@@ -105,6 +106,11 @@ export const uploadWorkshopImages = multer({
 // Combined upload for artist application (profile + artworks in same folder for simplicity)
 export const uploadArtistApplication = multer({
   storage: artistAppStorage || memoryStorage,
+  fileFilter: imageFileFilter
+});
+
+export const uploadHomeCategoryImages = multer({
+  storage: homeCategoriesStorage || memoryStorage,
   fileFilter: imageFileFilter
 });
 

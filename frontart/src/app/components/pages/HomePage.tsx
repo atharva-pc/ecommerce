@@ -6,11 +6,51 @@ import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog';
 import { featuredArtists as mockFeaturedArtists } from '../../data/mockData';
-import { getProducts, getFeaturedArtists, getPublicFeaturedArtworks } from '../../utils/api';
+import { getProducts, getFeaturedArtists, getPublicFeaturedArtworks, getHomeCategories, adminGetAllHomeCategories, adminUpsertHomeCategory, adminDeleteHomeCategory, adminUploadHomeCategoryImage } from '../../utils/api';
 import { toast } from 'sonner';
 import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
+import { useApp } from '../../context/AppContext';
+import { Label } from '../ui/label';
+import { Input } from '../ui/input';
+import { Textarea } from '../ui/textarea';
+import { Settings, Plus, Trash2, Image as ImageIcon, Save, X, Loader2, GripVertical } from 'lucide-react';
 // Slider images are now loaded from Cloudinary URLs
+
+const DEFAULT_CATEGORIES = [
+  {
+    categoryName: 'Physical Art',
+    description: 'Originals & prints',
+    image: { url: 'https://russell-collection.com/wp-content/uploads/2025/04/abstract-art-examples.jpg?&w=900', publicId: '' },
+    redirectUrl: '/marketplace',
+    displayOrder: 0,
+    isActive: true
+  },
+  {
+    categoryName: 'Digital Art',
+    description: 'Instant downloads',
+    image: { url: 'https://vac3.sgp1.digitaloceanspaces.com/wp-content/uploads/2023/05/06162238/176937-1536x864.webp?w=900', publicId: '' },
+    redirectUrl: '/marketplace',
+    displayOrder: 1,
+    isActive: true
+  },
+  {
+    categoryName: 'Custom Services',
+    description: 'Commissions & more',
+    image: { url: 'https://5.imimg.com/data5/SELLER/Default/2023/2/YE/UO/VJ/9107407/beautiful-abstract-frameless-wall-painting-for-home-springfield-500x500.jpg?v=165448385&w=900', publicId: '' },
+    redirectUrl: '/services',
+    displayOrder: 2,
+    isActive: true
+  },
+  {
+    categoryName: 'Learn',
+    description: 'Workshops & courses',
+    image: { url: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=900&q=80', publicId: '' },
+    redirectUrl: '/services/workshops',
+    displayOrder: 3,
+    isActive: true
+  }
+];
 
 const getVersionedUrl = (url?: string, version?: string | number) => {
   if (!url) return '';
@@ -49,6 +89,15 @@ export function HomePage() {
 
   const [featuredArtworks, setFeaturedArtworks] = useState<any[]>([]);
   const [displayArtists, setDisplayArtists] = useState<any[]>([]);
+  
+  // Home Category States
+  const [homeCategories, setHomeCategories] = useState<any[]>([]);
+  const [showEditor, setShowEditor] = useState(false);
+  const [adminCategories, setAdminCategories] = useState<any[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const { user } = useApp();
+  const isAdmin = user?.role === 'admin';
 
   // Fetch real products for the featured collection
   useEffect(() => {
@@ -74,6 +123,22 @@ export function HomePage() {
     fetchFeatured();
   }, []);
 
+  // Fetch dynamic home categories
+  const fetchHomeCategories = async () => {
+    try {
+      const res = await getHomeCategories();
+      if (res.success && res.data) {
+        setHomeCategories(res.data);
+      }
+    } catch (e) {
+      console.error('Failed to fetch home categories:', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchHomeCategories();
+  }, []);
+
   // Fetch dynamic featured artists
   useEffect(() => {
     const fetchArtists = async () => {
@@ -92,6 +157,97 @@ export function HomePage() {
     };
     fetchArtists();
   }, []);
+
+  const fetchAdminCategories = async () => {
+    try {
+      const res = await adminGetAllHomeCategories();
+      if (res.success && res.data) {
+        if (res.data.length === 0) {
+          // If empty, offer to start with defaults
+          setAdminCategories(DEFAULT_CATEGORIES);
+        } else {
+          setAdminCategories(res.data);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to fetch admin categories:', e);
+      toast.error('Failed to load categories for editing');
+    }
+  };
+
+  const handleOpenEditor = () => {
+    fetchAdminCategories();
+    setShowEditor(true);
+  };
+
+  const handleAddCategory = () => {
+    const newCat = {
+      categoryName: '',
+      description: '',
+      image: { url: '', publicId: '' },
+      redirectUrl: '/marketplace',
+      displayOrder: adminCategories.length,
+      isActive: true
+    };
+    setAdminCategories([...adminCategories, newCat]);
+  };
+
+  const handleRemoveCategory = async (index: number, id?: string) => {
+    if (id) {
+      if (!confirm('Are you sure you want to delete this category?')) return;
+      try {
+        const res = await adminDeleteHomeCategory(id);
+        if (res.success) {
+          toast.success('Category deleted');
+          setAdminCategories(adminCategories.filter((_, i) => i !== index));
+          fetchHomeCategories();
+        }
+      } catch (e: any) {
+        toast.error(e.message || 'Failed to delete category');
+      }
+    } else {
+      setAdminCategories(adminCategories.filter((_, i) => i !== index));
+    }
+  };
+
+  const handleSaveCategories = async () => {
+    try {
+      setSaving(true);
+      // Save each category
+      for (const cat of adminCategories) {
+        await adminUpsertHomeCategory({
+          id: cat._id,
+          ...cat
+        });
+      }
+      toast.success('All categories saved successfully');
+      setShowEditor(false);
+      fetchHomeCategories();
+    } catch (e: any) {
+      toast.error(e.message || 'Failed to save categories');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleImageUpload = async (index: number, file: File) => {
+    try {
+      setUploading(true);
+      const formData = new FormData();
+      formData.append('image', file);
+      const res = await adminUploadHomeCategoryImage(formData);
+      if (res.success && res.data) {
+        const updated = [...adminCategories];
+        updated[index] = { ...updated[index], image: res.data };
+        setAdminCategories(updated);
+        toast.success('Image uploaded');
+      }
+    } catch (e: any) {
+      toast.error(e.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const heroSlides = [
 
@@ -426,69 +582,82 @@ export function HomePage() {
             viewport={{ once: true, amount: 0.2 }}
             variants={stagger}
           >
-            <motion.div variants={fadeIn} className="text-center mb-12">
+            <motion.div variants={fadeIn} className="text-center mb-12 relative">
               <h2 className="text-3xl sm:text-4xl font-semibold text-slate-900 mb-2" style={{ fontFamily: 'Poppins, sans-serif', letterSpacing: '-0.3px' }}>
                 Explore by Category
               </h2>
               <p className="text-sm sm:text-base text-gray-500 max-w-xl mx-auto">
                 From traditional to contemporary, physical to digital – discover the perfect creative solution.
               </p>
+              
+              {isAdmin && (
+                <div className="absolute right-0 top-0">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleOpenEditor}
+                    className="flex items-center gap-2 border-[#efe7db] bg-white hover:bg-[#faf6ef]"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Edit Categories
+                  </Button>
+                </div>
+              )}
             </motion.div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                {
-                  name: 'Physical Art',
-                  subtitle: 'Originals & prints',
-                  image: 'https://russell-collection.com/wp-content/uploads/2025/04/abstract-art-examples.jpg?&w=900',
-                  onClick: () => navigate('/marketplace')
-                },
-                {
-                  name: 'Digital Art',
-                  subtitle: 'Instant downloads',
-                  image: 'https://vac3.sgp1.digitaloceanspaces.com/wp-content/uploads/2023/05/06162238/176937-1536x864.webp?w=900',
-                  onClick: () => navigate('/marketplace')
-                },
-                {
-                  name: 'Custom Services',
-                  subtitle: 'Commissions & more',
-                  image: 'https://5.imimg.com/data5/SELLER/Default/2023/2/YE/UO/VJ/9107407/beautiful-abstract-frameless-wall-painting-for-home-springfield-500x500.jpg?v=165448385&w=900',
-                  onClick: () => navigate('/services')
-                },
-                {
-                  name: 'Learn',
-                  subtitle: 'Workshops & courses',
-                  image: 'https://t4.ftcdn.net/jpg/04/48/77/29/360_F_448772985_m27ElmCFlqzL7d7tfwlSRNpnU6k7MA7l.jpg?w=900',
-                  onClick: () => navigate('/services')
-                }
-              ].map((category) => (
-                <motion.button
-                  key={category.name}
-                  variants={fadeIn}
-                  whileHover={{ y: -6 }}
-                  onClick={category.onClick}
-                  className="group text-left rounded-3xl overflow-hidden bg-white shadow-[0_14px_45px_rgba(15,23,42,0.12)] focus:outline-none focus:ring-2 focus:ring-[#b30452]"
-                >
-                  <div className="relative aspect-[4/3]">
+              {homeCategories.length > 0 ? (
+                homeCategories.map((cat) => (
+                  <motion.div
+                    key={cat._id}
+                    variants={fadeIn}
+                    whileHover={{ y: -8 }}
+                    onClick={() => navigate(cat.redirectUrl)}
+                    className="group cursor-pointer relative overflow-hidden rounded-2xl aspect-[4/5] shadow-sm hover:shadow-xl transition-all duration-300"
+                  >
                     <img
-                      src={category.image}
-                      alt={category.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      src={getVersionedUrl(cat.image?.url, cat.updatedAt)}
+                      alt={cat.categoryName}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-                    <div className="absolute inset-0 flex items-end">
-                      <div className="p-4 sm:p-5">
-                        <h3 className="text-base sm:text-lg font-semibold text-white mb-1">
-                          {category.name}
-                        </h3>
-                        <p className="text-xs sm:text-sm text-white/80">
-                          {category.subtitle}
-                        </p>
-                      </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-6">
+                      <h3 className="text-xl font-semibold text-white mb-1 group-hover:text-[#FDE68A] transition-colors">
+                        {cat.categoryName}
+                      </h3>
+                      <p className="text-sm text-gray-300">
+                        {cat.description}
+                      </p>
                     </div>
-                  </div>
-                </motion.button>
-              ))}
+                  </motion.div>
+                ))
+              ) : (
+                // Fallback to static if no data yet (for initial load)
+                DEFAULT_CATEGORIES.map((cat, idx) => (
+                  <motion.div
+                    key={idx}
+                    variants={fadeIn}
+                    whileHover={{ y: -8 }}
+                    onClick={() => navigate(cat.redirectUrl)}
+                    className="group cursor-pointer relative overflow-hidden rounded-2xl aspect-[4/5] shadow-sm hover:shadow-xl transition-all duration-300"
+                  >
+                    <img
+                      src={cat.image.url}
+                      alt={cat.categoryName}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-6">
+                      <h3 className="text-xl font-semibold text-white mb-1 group-hover:text-[#FDE68A] transition-colors">
+                        {cat.categoryName}
+                      </h3>
+                      <p className="text-sm text-gray-300">
+                        {cat.description}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))
+              )}
             </div>
           </motion.div>
         </div>
@@ -886,6 +1055,179 @@ export function HomePage() {
               </div>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+      {/* Category Editor Modal */}
+      <Dialog open={showEditor} onOpenChange={setShowEditor}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-serif">Home Category Editor</DialogTitle>
+            <DialogDescription>
+              Manage the "Explore by Category" cards on the homepage.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            <div className="flex justify-between items-center">
+              <h3 className="font-medium text-gray-900">Current Categories</h3>
+              <Button onClick={handleAddCategory} size="sm" className="bg-[#a73f2b] hover:bg-[#8e3524]">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Category
+              </Button>
+            </div>
+
+            <div className="grid gap-4">
+              {adminCategories.map((cat, index) => (
+                <div key={index} className="p-4 border rounded-xl bg-gray-50/50 space-y-4 relative group">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                      <div className="p-1 cursor-move text-gray-400">
+                        <GripVertical className="w-4 h-4" />
+                      </div>
+                      <span className="font-semibold text-gray-700">Category #{index + 1}</span>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleRemoveCategory(index, cat._id)}
+                      className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Category Name</Label>
+                      <Input 
+                        value={cat.categoryName}
+                        onChange={(e) => {
+                          const updated = [...adminCategories];
+                          updated[index] = { ...updated[index], categoryName: e.target.value };
+                          setAdminCategories(updated);
+                        }}
+                        placeholder="e.g. Physical Art"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Redirect URL</Label>
+                      <Input 
+                        value={cat.redirectUrl}
+                        onChange={(e) => {
+                          const updated = [...adminCategories];
+                          updated[index] = { ...updated[index], redirectUrl: e.target.value };
+                          setAdminCategories(updated);
+                        }}
+                        placeholder="e.g. /marketplace"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Subtitle / Description</Label>
+                    <Textarea 
+                      value={cat.description}
+                      onChange={(e) => {
+                        const updated = [...adminCategories];
+                        updated[index] = { ...updated[index], description: e.target.value };
+                        setAdminCategories(updated);
+                      }}
+                      placeholder="Brief text shown on the card"
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4 items-end">
+                    <div className="space-y-2">
+                      <Label>Card Image</Label>
+                      <div className="relative aspect-[16/9] rounded-lg overflow-hidden border bg-gray-100">
+                        {cat.image?.url ? (
+                          <img src={cat.image.url} alt="Preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                            <ImageIcon className="w-8 h-8 mb-2" />
+                            <span className="text-xs">No image selected</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <Button 
+                        variant="outline" 
+                        className="w-full relative" 
+                        disabled={uploading}
+                      >
+                        {uploading ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Plus className="w-4 h-4 mr-2" />
+                        )}
+                        {cat.image?.url ? 'Change Image' : 'Upload Image'}
+                        <input 
+                          type="file" 
+                          className="absolute inset-0 opacity-0 cursor-pointer" 
+                          accept="image/*"
+                          onChange={(e) => {
+                            if (e.target.files?.[0]) handleImageUpload(index, e.target.files[0]);
+                          }}
+                        />
+                      </Button>
+                      <div className="flex items-center gap-4">
+                        <Label className="flex items-center gap-2 cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            checked={cat.isActive}
+                            onChange={(e) => {
+                              const updated = [...adminCategories];
+                              updated[index] = { ...updated[index], isActive: e.target.checked };
+                              setAdminCategories(updated);
+                            }}
+                          />
+                          Active on Website
+                        </Label>
+                        <div className="flex items-center gap-2">
+                          <Label>Order:</Label>
+                          <Input 
+                            type="number" 
+                            className="w-16 h-8" 
+                            value={cat.displayOrder}
+                            onChange={(e) => {
+                              const updated = [...adminCategories];
+                              updated[index] = { ...updated[index], displayOrder: Number(e.target.value) };
+                              setAdminCategories(updated);
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
+            <Button variant="ghost" onClick={() => setShowEditor(false)}>
+              Cancel
+            </Button>
+            <Button 
+              className="bg-[#111827] hover:bg-black text-white px-8"
+              onClick={handleSaveCategories}
+              disabled={saving || uploading}
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving Changes...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save All Categories
+                </>
+              )}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
